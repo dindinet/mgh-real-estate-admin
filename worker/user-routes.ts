@@ -8,7 +8,7 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
     await PropertyEntity.ensureSeed(c.env);
     const cq = c.req.query('cursor');
     const lq = c.req.query('limit');
-    const page = await PropertyEntity.list(c.env, cq ?? null, lq ? Math.max(1, (Number(lq) | 0)) : 20);
+    const page = await PropertyEntity.list(c.env, cq ?? null, lq ? Math.max(1, (Number(lq) | 0)) : 40);
     return ok(c, page);
   });
   app.get('/api/properties/:ref', async (c) => {
@@ -20,13 +20,17 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
   app.post('/api/properties', async (c) => {
     const body = await c.req.json();
     if (!body.ref || !body.title) return bad(c, 'Ref and Title required');
-    const now = Date.now();
+    // Check if ref exists (Simulating UNIQUE constraint)
+    const entity = new PropertyEntity(c.env, body.ref);
+    if (await entity.exists()) return bad(c, 'Property reference already exists');
+    const now = new Date().toISOString();
     const property = {
       ...body,
       id: crypto.randomUUID(),
       images: body.images || [],
       created: now,
-      lastEdited: now
+      lastEdited: now,
+      kdate: now
     };
     return ok(c, await PropertyEntity.create(c.env, property));
   });
@@ -37,7 +41,7 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
     if (!await entity.exists()) return notFound(c, 'Property not found');
     const updates = {
       ...body,
-      lastEdited: Date.now()
+      lastEdited: new Date().toISOString()
     };
     await entity.patch(updates);
     return ok(c, await entity.getState());

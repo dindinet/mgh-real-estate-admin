@@ -32,22 +32,58 @@ export class PropertyEntity extends IndexedEntity<Property> {
   static readonly initialState: Property = {
     id: "",
     ref: "",
+    kref: "",
     title: "",
+    ptype: "Villa",
+    province: "",
+    town: "",
+    location: "",
+    area: "",
     price: 0,
+    originalprice: 0,
+    frequency: "Sale",
     beds: 0,
     baths: 0,
+    living: 0,
+    plot: 0,
     images: [],
-    location: "",
-    created: 0,
-    lastEdited: 0
+    description: "",
+    moredetails: "",
+    display: true,
+    salestage: 0,
+    rental: false,
+    finca: false,
+    penthouse: false,
+    luxury: false,
+    offplan: false,
+    leasehold: false,
+    golf: false,
+    beach: false,
+    aircon: false,
+    pool: false,
+    fireplace: false,
+    heating: false,
+    solarium: false,
+    balconies: false,
+    furnished: false,
+    kitchen: false,
+    utility: false,
+    notrain: false,
+    topsix: false,
+    kyeroPrime: false,
+    DE: "",
+    FR: "",
+    NL: "",
+    created: "",
+    kdate: "",
+    lastEdited: ""
   };
   static seedData = MOCK_PROPERTIES;
   static override keyOf<U extends { id: string }>(state: U): string {
-    // We use 'ref' as the indexing key for properties
     const s = state as unknown as Property;
     return s.ref || s.id;
   }
   async updateImages(images: string[]): Promise<void> {
-    await this.patch({ images, lastEdited: Date.now() });
+    await this.patch({ images, lastEdited: new Date().toISOString() });
   }
 }

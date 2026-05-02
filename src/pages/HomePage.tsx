@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { useAuthStore } from '@/stores/auth-store';
 import { toast } from 'sonner';
 export function HomePage() {
-  const [email, setEmail] = useState('admin@lumina.com');
+  const [email, setEmail] = useState('admin@maxgoldhouse.com');
   const [password, setPassword] = useState('password123');
   const [isLoading, setIsLoading] = useState(false);
   const login = useAuthStore(state => state.login);
@@ -15,11 +15,10 @@ export function HomePage() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    // Simulate brief network delay
     setTimeout(() => {
       login(email);
       setIsLoading(false);
-      toast.success('Welcome back, Admin');
+      toast.success('Welcome back to MaxGoldHouse');
       navigate('/properties');
     }, 800);
   };
@@ -31,32 +30,32 @@ export function HomePage() {
           <div className="w-14 h-14 rounded-2xl bg-primary flex items-center justify-center shadow-lg shadow-primary/20 mb-4 floating">
             <Building2 className="w-8 h-8 text-primary-foreground" />
           </div>
-          <h1 className="text-3xl font-display font-bold tracking-tight">Lumina Admin</h1>
-          <p className="text-muted-foreground mt-2">Manage your luxury real estate portfolio</p>
+          <h1 className="text-3xl font-display font-bold tracking-tight">MaxGoldHouse Admin</h1>
+          <p className="text-muted-foreground mt-2">Elite Real Estate Portfolio Management</p>
         </div>
         <Card className="border-none shadow-xl bg-card/50 backdrop-blur-sm">
           <CardHeader>
             <CardTitle className="text-xl">Sign In</CardTitle>
-            <CardDescription>Enter your credentials to access the portal</CardDescription>
+            <CardDescription>Access the MGH property portal</CardDescription>
           </CardHeader>
           <form onSubmit={handleLogin}>
             <CardContent className="space-y-4">
               <div className="space-y-2">
                 <label className="text-sm font-medium">Email Address</label>
-                <Input 
-                  type="email" 
-                  value={email} 
+                <Input
+                  type="email"
+                  value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="admin@lumina.com"
+                  placeholder="admin@maxgoldhouse.com"
                   className="bg-secondary/50 border-input"
                   required
                 />
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium">Password</label>
-                <Input 
-                  type="password" 
-                  value={password} 
+                <Input
+                  type="password"
+                  value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
                   className="bg-secondary/50 border-input"
@@ -65,8 +64,8 @@ export function HomePage() {
               </div>
             </CardContent>
             <CardFooter>
-              <Button 
-                type="submit" 
+              <Button
+                type="submit"
                 className="w-full h-11 btn-gradient rounded-xl font-semibold"
                 disabled={isLoading}
               >
@@ -74,7 +73,7 @@ export function HomePage() {
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 ) : (
                   <>
-                    Sign In
+                    Enter Portal
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </>
                 )}

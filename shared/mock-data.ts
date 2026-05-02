@@ -1,95 +1,114 @@
-import type { User, Chat, ChatMessage, Property } from './types';
+import type { User, Chat, Property } from './types';
 export const MOCK_USERS: User[] = [
-  { id: 'u1', name: 'Admin User' },
+  { id: 'u1', name: 'MaxGoldHouse Admin' },
 ];
 export const MOCK_CHATS: Chat[] = [
-  { id: 'c1', title: 'Support' },
+  { id: 'c1', title: 'MGH Support' },
 ];
-export const MOCK_CHAT_MESSAGES: ChatMessage[] = [];
+export const MOCK_CHAT_MESSAGES: any[] = [];
+const now = new Date().toISOString();
 export const MOCK_PROPERTIES: Property[] = [
   {
     id: 'p1',
-    ref: 'LUM-001',
-    title: 'Modern Glass Villa',
-    price: 2450000,
-    beds: 5,
-    baths: 4,
-    location: 'Beverly Hills, CA',
+    ref: 'MGH-001',
+    kref: 'K-9901',
+    title: 'Luxury Azure Villa',
+    ptype: 'Villa',
+    province: 'Alicante',
+    town: 'Javea',
+    location: 'Costa Blanca, Spain',
+    area: 'Balcon al Mar',
+    price: 1250000,
+    originalprice: 1400000,
+    frequency: 'Sale',
+    beds: 4,
+    baths: 3,
+    living: 250,
+    plot: 1000,
     images: [
       'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=800&q=80',
       'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=800&q=80'
     ],
-    created: Date.now() - 1000000,
-    lastEdited: Date.now()
+    description: 'A stunning modern villa with panoramic sea views.',
+    moredetails: 'Features high-end finishes throughout.',
+    display: true,
+    salestage: 0,
+    rental: false,
+    finca: false,
+    penthouse: false,
+    luxury: true,
+    offplan: false,
+    leasehold: false,
+    golf: false,
+    beach: true,
+    aircon: true,
+    pool: true,
+    fireplace: true,
+    heating: true,
+    solarium: true,
+    balconies: true,
+    furnished: true,
+    kitchen: true,
+    utility: true,
+    notrain: true,
+    topsix: true,
+    kyeroPrime: true,
+    DE: 'Eine atemberaubende moderne Villa mit Panoramablick auf das Meer.',
+    FR: 'Une superbe villa moderne avec vue panoramique sur la mer.',
+    NL: 'Een prachtige moderne villa met panoramisch uitzicht op zee.',
+    created: now,
+    kdate: now,
+    lastEdited: now
   },
   {
     id: 'p2',
-    ref: 'LUM-002',
-    title: 'Scandinavian Minimalist',
-    price: 1850000,
-    beds: 3,
+    ref: 'MGH-002',
+    kref: 'K-9902',
+    title: 'Minimalist Beachfront Apartment',
+    ptype: 'Apartment',
+    province: 'Malaga',
+    town: 'Marbella',
+    location: 'Golden Mile',
+    area: 'Puerto Banus',
+    price: 850000,
+    originalprice: 850000,
+    frequency: 'Sale',
+    beds: 2,
     baths: 2,
-    location: 'Aspen, CO',
+    living: 120,
+    plot: 0,
     images: [
       'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=800&q=80'
     ],
-    created: Date.now() - 2000000,
-    lastEdited: Date.now()
-  },
-  {
-    id: 'p3',
-    ref: 'LUM-003',
-    title: 'Coastal Penthouse',
-    price: 3200000,
-    beds: 4,
-    baths: 4.5,
-    location: 'Miami, FL',
-    images: [
-      'https://images.unsplash.com/photo-1600607687940-4e524cb35a3a?auto=format&fit=crop&w=800&q=80'
-    ],
-    created: Date.now() - 3000000,
-    lastEdited: Date.now()
-  },
-  {
-    id: 'p4',
-    ref: 'LUM-004',
-    title: 'Urban Industrial Loft',
-    price: 950000,
-    beds: 2,
-    baths: 2,
-    location: 'Brooklyn, NY',
-    images: [
-      'https://images.unsplash.com/photo-1600566753190-17f0bb2a6c3e?auto=format&fit=crop&w=800&q=80'
-    ],
-    created: Date.now() - 4000000,
-    lastEdited: Date.now()
-  },
-  {
-    id: 'p5',
-    ref: 'LUM-005',
-    title: 'Desert Oasis Mansion',
-    price: 5400000,
-    beds: 6,
-    baths: 7,
-    location: 'Scottsdale, AZ',
-    images: [
-      'https://images.unsplash.com/photo-1613490493576-7fde63acd811?auto=format&fit=crop&w=800&q=80'
-    ],
-    created: Date.now() - 5000000,
-    lastEdited: Date.now()
-  },
-  {
-    id: 'p6',
-    ref: 'LUM-006',
-    title: 'Lakefront Heritage Home',
-    price: 1200000,
-    beds: 4,
-    baths: 3,
-    location: 'Lake Tahoe, NV',
-    images: [
-      'https://images.unsplash.com/photo-1518780664697-55e3ad937233?auto=format&fit=crop&w=800&q=80'
-    ],
-    created: Date.now() - 6000000,
-    lastEdited: Date.now()
+    description: 'Elegant apartment steps from the beach.',
+    moredetails: 'Recently renovated with luxury materials.',
+    display: true,
+    salestage: 1, // Reserved
+    rental: false,
+    finca: false,
+    penthouse: false,
+    luxury: false,
+    offplan: false,
+    leasehold: false,
+    golf: false,
+    beach: true,
+    aircon: true,
+    pool: true,
+    fireplace: false,
+    heating: true,
+    solarium: false,
+    balconies: true,
+    furnished: true,
+    kitchen: true,
+    utility: false,
+    notrain: true,
+    topsix: false,
+    kyeroPrime: false,
+    DE: 'Elegante Wohnung nur wenige Schritte vom Strand entfernt.',
+    FR: 'Appartement élégant à deux pas de la plage.',
+    NL: 'Elegant appartement op een steenworp afstand van het strand.',
+    created: now,
+    kdate: now,
+    lastEdited: now
   }
 ];

@@ -1,32 +1,32 @@
 import React from "react";
-import { 
-  Home, 
-  Building2, 
-  Settings, 
-  LogOut, 
+import {
+  Home,
+  Building2,
+  Settings,
+  LogOut,
   User,
   ChevronRight
 } from "lucide-react";
-import { 
-  SidebarProvider, 
-  Sidebar, 
-  SidebarContent, 
-  SidebarHeader, 
-  SidebarFooter, 
-  SidebarMenu, 
-  SidebarMenuItem, 
+import {
+  SidebarProvider,
+  Sidebar,
+  SidebarContent,
+  SidebarHeader,
+  SidebarFooter,
+  SidebarMenu,
+  SidebarMenuItem,
   SidebarMenuButton,
   SidebarInset,
   SidebarTrigger
 } from "@/components/ui/sidebar";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
-  DropdownMenuLabel, 
-  DropdownMenuSeparator, 
-  DropdownMenuTrigger 
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
 import { useAuthStore } from "@/stores/auth-store";
 import { Link, useLocation } from "react-router-dom";
@@ -36,7 +36,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
   const location = useLocation();
   const menuItems = [
     { icon: Home, label: "Dashboard", path: "/properties" },
-    { icon: Building2, label: "Properties", path: "/properties" },
+    { icon: Building2, label: "Listings", path: "/properties" },
     { icon: Settings, label: "Settings", path: "/settings" },
   ];
   return (
@@ -48,15 +48,15 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
               <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
                 <Building2 className="h-5 w-5 text-primary-foreground" />
               </div>
-              <span className="font-display font-bold text-lg tracking-tight">Lumina Admin</span>
+              <span className="font-display font-bold text-lg tracking-tight">MaxGoldHouse</span>
             </div>
           </SidebarHeader>
           <SidebarContent className="px-3">
             <SidebarMenu>
               {menuItems.map((item) => (
                 <SidebarMenuItem key={item.label}>
-                  <SidebarMenuButton 
-                    asChild 
+                  <SidebarMenuButton
+                    asChild
                     isActive={location.pathname === item.path}
                     className="transition-all duration-200"
                   >
@@ -70,7 +70,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
             </SidebarMenu>
           </SidebarContent>
           <SidebarFooter className="p-4 border-t border-border/50">
-            <button 
+            <button
               onClick={logout}
               className="flex items-center gap-3 px-3 py-2 w-full text-sm text-muted-foreground hover:text-foreground transition-colors"
             >
@@ -84,7 +84,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
             <div className="flex items-center gap-4">
               <SidebarTrigger />
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <span>Admin</span>
+                <span className="font-semibold text-primary">MGH Admin</span>
                 <ChevronRight className="h-4 w-4" />
                 <span className="text-foreground font-medium capitalize">
                   {location.pathname.split('/').pop() || 'Dashboard'}
