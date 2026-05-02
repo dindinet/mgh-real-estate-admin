@@ -7,9 +7,14 @@ interface ProtectedRouteProps {
 export function ProtectedRoute({ children }: ProtectedRouteProps) {
   const isAuthenticated = useAuthStore(s => s.isAuthenticated);
   const navigate = useNavigate();
-  
+
+  React.useEffect(() => {
+    if (!isAuthenticated) {
+      navigate('/', { replace: true });
+    }
+  }, [isAuthenticated, navigate]);
+
   if (!isAuthenticated) {
-    navigate('/', { replace: true });
     return null;
   }
   return <>{children}</>;
