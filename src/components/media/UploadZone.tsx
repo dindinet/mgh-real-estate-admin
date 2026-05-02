@@ -4,76 +4,65 @@ import { Upload, Cloud, Loader2, FileCheck, Sparkles } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
-import JSZip from 'jszip';
 import imageCompression from 'browser-image-compression';
 interface UploadZoneProps {
+  propertyRef: string;
   onUploadComplete: (urls: string[]) => void;
 }
-type UploadState = 'idle' | 'extracting' | 'optimizing' | 'uploading';
-export function UploadZone({ onUploadComplete }: UploadZoneProps) {
+type UploadState = 'idle' | 'optimizing' | 'uploading';
+export function UploadZone({ propertyRef, onUploadComplete }: UploadZoneProps) {
   const [state, setState] = useState<UploadState>('idle');
   const [progress, setProgress] = useState(0);
   const processFiles = useCallback(async (files: File[]) => {
+    if (!propertyRef) {
+      toast.error('Invalid property context');
+      return;
+    }
     try {
-      const allFiles: File[] = [];
-      // 1. Extraction Phase
-      setState('extracting');
-      setProgress(10);
-      for (const file of files) {
-        if (file.type === 'application/zip' || file.name.endsWith('.zip')) {
-          const zip = await JSZip.loadAsync(file);
-          const zipFiles = Object.values(zip.files);
-          for (const zipEntry of zipFiles) {
-            if (!zipEntry.dir && zipEntry.name.match(/\.(jpg|jpeg|png|webp)$/i)) {
-              const blob = await zipEntry.async('blob');
-              allFiles.push(new File([blob], zipEntry.name, { type: 'image/jpeg' }));
-            }
-          }
-        } else if (file.type.startsWith('image/')) {
-          allFiles.push(file);
-        }
-      }
-      if (allFiles.length === 0) {
-        toast.error('No valid images found in selection');
-        setState('idle');
-        return;
-      }
-      // 2. Optimization Phase
+      // 1. Optimization Phase (Client-side)
       setState('optimizing');
-      const optimizedUrls: string[] = [];
+      const optimizedFiles: File[] = [];
       const compressionOptions = {
-        maxSizeMB: 0.8, // Slightly more aggressive for mobile
-        maxWidthOrHeight: 1600,
+        maxSizeMB: 1,
+        maxWidthOrHeight: 1920,
         useWebWorker: true,
       };
-      for (let i = 0; i < allFiles.length; i++) {
-        const file = allFiles[i];
-        try {
-          const compressedFile = await imageCompression(file, compressionOptions);
-          const url = URL.createObjectURL(compressedFile);
-          optimizedUrls.push(url);
-        } catch (e) {
-          console.warn(`Failed to compress ${file.name}, using original`, e);
-          optimizedUrls.push(URL.createObjectURL(file));
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        if (file.type.startsWith('image/')) {
+          try {
+            const compressedFile = await imageCompression(file, compressionOptions);
+            optimizedFiles.push(new File([compressedFile], file.name, { type: file.type }));
+          } catch (e) {
+            optimizedFiles.push(file);
+          }
         }
-        // Progress: 20% to 80%
-        setProgress(20 + ((i + 1) / allFiles.length) * 60);
+        setProgress(10 + ((i + 1) / files.length) * 40);
       }
-      // 3. Simulated Upload Phase
+      // 2. Real Upload Phase (API Call)
       setState('uploading');
-      setProgress(90);
-      // Artificial delay to ensure user sees the "securing" state
-      await new Promise(resolve => setTimeout(resolve, 800));
+      const formData = new FormData();
+      optimizedFiles.forEach(file => formData.append('files', file));
+      const response = await fetch(`/api/properties/${propertyRef}/images`, {
+        method: 'POST',
+        body: formData,
+      });
+      const result = await response.json();
+      if (!response.ok || !result.success) {
+        throw new Error(result.error || 'Server upload failed');
+      }
       setProgress(100);
-      toast.success(`Successfully processed ${optimizedUrls.length} images`);
-      onUploadComplete(optimizedUrls);
+      toast.success(`Successfully synchronized ${result.data.urls.length} images`);
+      onUploadComplete(result.data.urls);
       setState('idle');
+      setProgress(0);
     } catch (error) {
-      console.error('Processing failed:', error);
-      toast.error('Media pipeline failed. Please try smaller batches.');
+      console.error('Upload failed:', error);
+      toast.error(error instanceof Error ? error.message : 'Media pipeline failed');
       setState('idle');
+      setProgress(0);
     }
-  }, [onUploadComplete]);
+  }, [onUploadComplete, propertyRef]);
   const onDrop = useCallback((acceptedFiles: File[]) => {
     if (acceptedFiles.length === 0) return;
     processFiles(acceptedFiles);
@@ -88,9 +77,8 @@ export function UploadZone({ onUploadComplete }: UploadZoneProps) {
   });
   const getStatusText = () => {
     switch (state) {
-      case 'extracting': return 'Unpacking Archive...';
-      case 'optimizing': return 'Compressing Assets...';
-      case 'uploading': return 'Finalizing Bundle...';
+      case 'optimizing': return 'Optimizing Assets...';
+      case 'uploading': return 'Syncing with MGH Cloud...';
       default: return 'Processing Media...';
     }
   };
@@ -114,14 +102,11 @@ export function UploadZone({ onUploadComplete }: UploadZoneProps) {
           </div>
           <div className="space-y-2">
             <p className="text-3xl font-display font-bold tracking-tight">
-              {isDragActive ? "Drop to Import" : "Import Media"}
+              {isDragActive ? "Release to Sync" : "Cloud Import"}
             </p>
             <p className="text-muted-foreground max-w-[280px] mx-auto text-sm leading-relaxed">
-              Selection can include individual photos or full <span className="font-bold text-foreground underline decoration-primary/30 underline-offset-4">ZIP archives</span>.
+              Drag images here for automated processing and persistent storage in the MGH database.
             </p>
-          </div>
-          <div className="px-8 py-3 bg-primary text-primary-foreground rounded-2xl text-sm font-bold shadow-xl hover:brightness-110 transition-all active:scale-95">
-            Browse File System
           </div>
         </div>
       </div>
@@ -140,17 +125,6 @@ export function UploadZone({ onUploadComplete }: UploadZoneProps) {
           <Progress value={progress} className="h-3 rounded-full bg-background" />
         </div>
       )}
-      <div className="p-6 bg-blue-50/50 dark:bg-blue-900/10 border border-blue-200/50 dark:border-blue-800/30 rounded-3xl flex gap-5 text-sm items-center">
-        <div className="h-12 w-12 rounded-2xl bg-blue-100 dark:bg-blue-800/40 flex items-center justify-center shrink-0">
-          <Cloud className="h-6 w-6 text-blue-600 dark:text-blue-400" />
-        </div>
-        <div className="space-y-1">
-          <p className="font-bold text-blue-900 dark:text-blue-100 uppercase tracking-widest text-[10px]">Cloud Optimization</p>
-          <p className="opacity-80 leading-relaxed font-medium">
-            Images are automatically resized and compressed client-side to ensure blistering fast portfolio load times.
-          </p>
-        </div>
-      </div>
     </div>
   );
 }
