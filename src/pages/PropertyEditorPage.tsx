@@ -50,6 +50,7 @@ import {
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { ImageManager } from '@/components/media/ImageManager';
 import { format } from 'date-fns';
@@ -184,9 +185,9 @@ export function PropertyEditorPage() {
         </div>
         <div className="flex gap-4">
           <Button variant="ghost" className="h-14 px-8 rounded-2xl font-bold text-muted-foreground hover:text-foreground" onClick={() => navigate('/properties')}>Cancel</Button>
-          <Button 
-            onClick={form.handleSubmit((data) => mutation.mutate(data))} 
-            className="h-14 px-10 btn-gradient rounded-2xl font-black text-lg shadow-2xl" 
+          <Button
+            onClick={form.handleSubmit((data) => mutation.mutate(data))}
+            className="h-14 px-10 btn-gradient rounded-2xl font-black text-lg shadow-2xl"
             disabled={mutation.isPending}
           >
             {mutation.isPending ? <Loader2 className="mr-3 h-6 w-6 animate-spin" /> : <Save className="mr-3 h-6 w-6" />}
