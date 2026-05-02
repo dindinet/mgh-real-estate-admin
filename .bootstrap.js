@@ -81,7 +81,8 @@ function runSetupCommands() {
     "bun add react-dropzone@^14.2.3",
     "bun add jszip@^3.10.1",
     "bun add browser-image-compression@^2.0.2",
-    "bun add @dnd-kit/utilities@^3.2.0"
+    "bun add @dnd-kit/utilities@^3.2.0",
+    "bun add @dnd-kit/core @dnd-kit/sortable @dnd-kit/utilities react-dropzone jszip browser-image-compression"
 ];
     
     if (commands.length === 0) {
