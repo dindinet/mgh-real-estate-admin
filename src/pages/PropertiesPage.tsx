@@ -11,20 +11,21 @@ import {
   MapPin,
   Edit3,
   Trash2,
-  Loader2,
   Building2,
   TrendingUp,
   DollarSign,
-  ArrowRight,
-  Clock,
-  Maximize2
+  Maximize2,
+  ImageIcon,
+  Waves,
+  Palmtree,
+  Sparkles
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
-import { formatDistanceToNow } from 'date-fns';
+import { cn } from '@/lib/utils';
 export function PropertiesPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -40,6 +41,7 @@ export function PropertiesPage() {
     return raw.filter(p =>
       p.title.toLowerCase().includes(q) ||
       p.ref.toLowerCase().includes(q) ||
+      (p.kref && p.kref.toLowerCase().includes(q)) ||
       p.location.toLowerCase().includes(q) ||
       p.ptype.toLowerCase().includes(q)
     );
@@ -61,80 +63,85 @@ export function PropertiesPage() {
     mutationFn: (ref: string) => api(`/api/properties/${ref}`, { method: 'DELETE' }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['properties'] });
-      toast.success('Property listing removed');
+      toast.success('Listing removed successfully');
     },
-    onError: () => toast.error('Failed to delete property')
+    onError: () => toast.error('Failed to remove listing')
   });
   const handleDelete = (e: React.MouseEvent, ref: string) => {
     e.stopPropagation();
-    if (confirm('Are you sure you want to remove this listing?')) {
+    if (confirm('Permanently remove this listing from the portfolio?')) {
       deleteMutation.mutate(ref);
     }
   };
   const getStatusBadge = (stage: number) => {
     switch (stage) {
-      case 1: return <Badge className="bg-amber-500 hover:bg-amber-600 border-none px-3 font-bold">RESERVED</Badge>;
-      case 2: return <Badge className="bg-rose-500 hover:bg-rose-600 border-none px-3 font-bold">SOLD</Badge>;
-      default: return <Badge className="bg-emerald-500 hover:bg-emerald-600 border-none px-3 font-bold">AVAILABLE</Badge>;
+      case 1: return <Badge className="bg-amber-500 hover:bg-amber-600 border-none px-3 font-black tracking-widest text-[10px]">RESERVED</Badge>;
+      case 2: return <Badge className="bg-rose-500 hover:bg-rose-600 border-none px-3 font-black tracking-widest text-[10px]">SOLD</Badge>;
+      default: return <Badge className="bg-emerald-500 hover:bg-emerald-600 border-none px-3 font-black tracking-widest text-[10px]">ACTIVE</Badge>;
     }
   };
   return (
-    <div className="space-y-10 animate-fade-in">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
+    <div className="space-y-12 animate-fade-in">
+      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-8">
         <div>
-          <h1 className="text-4xl font-display font-bold tracking-tight">MGH Listings</h1>
-          <p className="text-muted-foreground mt-1 text-lg">MaxGoldHouse Premium Portfolio</p>
+          <h1 className="text-5xl font-display font-black tracking-tighter text-foreground">Global Portfolio</h1>
+          <p className="text-muted-foreground mt-2 text-xl font-medium">Managing the MaxGoldHouse Elite Collection</p>
         </div>
         <Button
-          className="btn-gradient rounded-2xl px-8 h-14 font-bold text-lg shadow-xl"
+          className="btn-gradient rounded-2xl px-10 h-16 font-black text-xl shadow-2xl hover:scale-105 active:scale-95 transition-all"
           onClick={() => navigate('/properties/new')}
         >
-          <Plus className="mr-2 h-6 w-6" />
-          Create Listing
+          <Plus className="mr-3 h-8 w-8 stroke-[3]" />
+          Create Entry
         </Button>
       </div>
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-8">
         {[
-          { label: 'Total Database', val: stats.count, icon: Building2, color: 'bg-blue-500' },
-          { label: 'Active Sale Value', val: `${(stats.value / 1e6).toFixed(2)}M`, icon: DollarSign, color: 'bg-indigo-600' },
-          { label: 'Avg Sale / Bed', val: `${Math.round(stats.avg / 1000)}k`, icon: TrendingUp, color: 'bg-emerald-600' },
+          { label: 'Asset Count', val: stats.count, icon: Building2, color: 'bg-indigo-600' },
+          { label: 'Active Value', val: `${(stats.value / 1e6).toFixed(1)}M`, icon: DollarSign, color: 'bg-emerald-600' },
+          { label: 'Avg Value / Bed', val: `${Math.round(stats.avg / 1000)}k`, icon: TrendingUp, color: 'bg-blue-600' },
         ].map((stat, i) => (
-          <div key={i} className="bg-card border border-border/50 p-6 rounded-3xl shadow-soft flex items-center gap-5">
-            <div className={`${stat.color} h-12 w-12 rounded-2xl flex items-center justify-center text-white shadow-lg`}>
-              <stat.icon className="h-6 w-6" />
+          <div key={i} className="bg-card border border-border/50 p-8 rounded-[2.5rem] shadow-soft flex items-center gap-6 group hover:border-primary/20 transition-all">
+            <div className={`${stat.color} h-16 w-16 rounded-3xl flex items-center justify-center text-white shadow-xl group-hover:scale-110 transition-transform`}>
+              <stat.icon className="h-8 w-8" />
             </div>
             <div>
-              <p className="text-sm font-bold text-muted-foreground uppercase tracking-wider">{stat.label}</p>
-              <p className="text-2xl font-display font-bold">{stat.val}</p>
+              <p className="text-xs font-black text-muted-foreground uppercase tracking-[0.2em] mb-1">{stat.label}</p>
+              <p className="text-3xl font-display font-black">{stat.val}</p>
             </div>
           </div>
         ))}
       </div>
-      <div className="relative max-w-xl">
-        <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+      <div className="relative max-w-2xl">
+        <Search className="absolute left-5 top-1/2 -translate-y-1/2 h-6 w-6 text-muted-foreground/60" />
         <Input
-          placeholder="Search ref, title, type or location..."
+          placeholder="Filter by ref, title, location, type..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="pl-12 bg-card/50 border-border/50 h-14 rounded-2xl text-lg shadow-sm focus:ring-primary/20"
+          className="pl-14 bg-card/50 border-border/50 h-16 rounded-3xl text-xl shadow-sm focus:ring-4 focus:ring-primary/10 transition-all placeholder:text-muted-foreground/40 font-medium"
         />
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-10">
         {isLoading ? (
           Array.from({ length: 8 }).map((_, i) => (
-            <div key={i} className="space-y-4">
-              <Skeleton className="aspect-[4/3] w-full rounded-[2.5rem]" />
-              <div className="space-y-2 px-2">
-                <Skeleton className="h-7 w-2/3 rounded-lg" />
-                <Skeleton className="h-5 w-1/2 rounded-lg" />
+            <div key={i} className="space-y-6">
+              <Skeleton className="aspect-[4/3] w-full rounded-[3rem]" />
+              <div className="space-y-3 px-4">
+                <Skeleton className="h-8 w-3/4 rounded-xl" />
+                <Skeleton className="h-6 w-1/2 rounded-xl" />
               </div>
             </div>
           ))
+        ) : properties.length === 0 ? (
+           <div className="col-span-full py-20 text-center space-y-4 bg-muted/20 rounded-[3rem] border-2 border-dashed">
+              <Building2 className="h-16 w-16 mx-auto text-muted-foreground opacity-20" />
+              <p className="text-xl font-bold text-muted-foreground">No matching listings found</p>
+           </div>
         ) : (
           properties.map((property) => (
             <div
               key={property.id}
-              className="group relative bg-card rounded-[2.5rem] border border-border/40 overflow-hidden hover:-translate-y-2 hover:shadow-2xl transition-all duration-500"
+              className="group relative bg-card rounded-[3rem] border border-border/40 overflow-hidden hover:-translate-y-3 hover:shadow-[0_40px_80px_-20px_rgba(0,0,0,0.15)] transition-all duration-700"
             >
               <div className="aspect-[4/3] relative overflow-hidden">
                 <img
@@ -142,68 +149,90 @@ export function PropertiesPage() {
                   alt={property.title}
                   className="object-cover w-full h-full transition-transform duration-1000 group-hover:scale-110"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent opacity-80" />
-                <div className="absolute top-5 left-5 flex flex-col gap-2">
-                  <Badge className="bg-white/95 text-black border-none backdrop-blur shadow-xl hover:bg-white font-bold px-3 py-1 rounded-full">
+                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-60" />
+                {/* Overlays */}
+                <div className="absolute top-6 left-6 flex flex-col gap-2">
+                  <Badge className="bg-white/95 text-black border-none backdrop-blur shadow-xl hover:bg-white font-black text-[10px] px-3 py-1.5 rounded-full tracking-widest uppercase">
                     {property.ref}
                   </Badge>
                   {getStatusBadge(property.salestage)}
                 </div>
-                <div className="absolute bottom-5 right-5 flex gap-3 translate-y-8 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300">
-                  <Button
-                    size="icon"
-                    className="h-11 w-11 rounded-2xl bg-white text-black hover:bg-primary hover:text-white shadow-2xl transition-all"
-                    onClick={() => navigate(`/properties/${property.ref}/edit`)}
-                  >
-                    <Edit3 className="h-5 w-5" />
-                  </Button>
-                  <Button
-                    size="icon"
-                    variant="destructive"
-                    className="h-11 w-11 rounded-2xl shadow-2xl transition-all"
-                    disabled={deleteMutation.isPending}
-                    onClick={(e) => handleDelete(e, property.ref)}
-                  >
-                    <Trash2 className="h-5 w-5" />
-                  </Button>
+                <div className="absolute top-6 right-6 flex items-center gap-1.5 bg-black/40 backdrop-blur-md px-3 py-1.5 rounded-full text-white text-[10px] font-black shadow-lg">
+                  <ImageIcon className="h-3 w-3" />
+                  {property.images.length}
+                </div>
+                {/* Quick Feature Badges */}
+                <div className="absolute bottom-6 left-6 flex gap-2">
+                  {property.pool && (
+                    <div className="h-8 w-8 rounded-xl bg-blue-500/80 backdrop-blur-md text-white flex items-center justify-center shadow-lg"><Waves className="h-4 w-4" /></div>
+                  )}
+                  {property.beach && (
+                    <div className="h-8 w-8 rounded-xl bg-amber-500/80 backdrop-blur-md text-white flex items-center justify-center shadow-lg"><Palmtree className="h-4 w-4" /></div>
+                  )}
+                  {property.luxury && (
+                    <div className="h-8 w-8 rounded-xl bg-purple-600/80 backdrop-blur-md text-white flex items-center justify-center shadow-lg"><Sparkles className="h-4 w-4" /></div>
+                  )}
+                </div>
+                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/10">
+                   <div className="flex gap-4 translate-y-4 group-hover:translate-y-0 transition-transform duration-500">
+                    <Button
+                      size="icon"
+                      className="h-14 w-14 rounded-2xl bg-white text-black hover:bg-primary hover:text-white shadow-2xl transition-all"
+                      onClick={(e) => { e.stopPropagation(); navigate(`/properties/${property.ref}/edit`); }}
+                    >
+                      <Edit3 className="h-6 w-6" />
+                    </Button>
+                    <Button
+                      size="icon"
+                      variant="destructive"
+                      className="h-14 w-14 rounded-2xl shadow-2xl transition-all"
+                      disabled={deleteMutation.isPending}
+                      onClick={(e) => handleDelete(e, property.ref)}
+                    >
+                      <Trash2 className="h-6 w-6" />
+                    </Button>
+                  </div>
                 </div>
               </div>
-              <div className="p-6 space-y-4 cursor-pointer" onClick={() => navigate(`/properties/${property.ref}/edit`)}>
+              <div className="p-8 space-y-6 cursor-pointer" onClick={() => navigate(`/properties/${property.ref}/edit`)}>
                 <div>
-                  <div className="flex items-center gap-2 mb-1">
-                    <Badge variant="outline" className="text-[10px] font-bold uppercase tracking-widest">{property.ptype}</Badge>
-                    {!property.display && <Badge variant="secondary" className="text-[10px]">HIDDEN</Badge>}
+                  <div className="flex items-center gap-3 mb-2">
+                    <span className="text-[10px] font-black uppercase tracking-[0.25em] text-primary bg-primary/5 px-2 py-0.5 rounded-lg">{property.ptype}</span>
+                    {!property.display && <span className="text-[10px] font-black uppercase tracking-[0.25em] text-rose-500 bg-rose-50 px-2 py-0.5 rounded-lg">HIDDEN</span>}
                   </div>
-                  <h3 className="text-xl font-bold line-clamp-1 group-hover:text-primary transition-colors duration-300">
+                  <h3 className="text-2xl font-black line-clamp-1 group-hover:text-primary transition-colors duration-300 leading-tight">
                     {property.title}
                   </h3>
-                  <div className="flex items-center text-sm text-muted-foreground mt-1.5 font-medium">
-                    <MapPin className="h-3.5 w-3.5 mr-1.5 text-primary/60" />
-                    {property.town}, {property.province}
+                  <div className="flex items-center text-sm text-muted-foreground mt-3 font-bold">
+                    <MapPin className="h-4 w-4 mr-2 text-primary" />
+                    {property.town}, <span className="opacity-60">{property.province}</span>
                   </div>
                 </div>
-                <div className="flex items-center justify-between pt-2">
+                <div className="flex items-center justify-between pt-2 border-t border-border/40">
                   <div className="flex flex-col">
                     {property.originalprice > property.price && (
-                      <span className="text-xs text-muted-foreground line-through font-bold">
+                      <span className="text-xs text-muted-foreground line-through font-bold mb-0.5 opacity-50">
                         ${property.originalprice.toLocaleString()}
                       </span>
                     )}
-                    <span className="text-2xl font-display font-bold text-foreground">
+                    <span className="text-3xl font-display font-black text-foreground tracking-tighter">
                       ${property.price.toLocaleString()}
                     </span>
                   </div>
-                  <div className="flex gap-3 text-[10px] font-black text-muted-foreground/80">
-                    <span className="flex flex-col items-center gap-0.5 bg-muted/50 px-2 py-1 rounded-xl">
-                      <Bed className="h-4 w-4 text-primary" /> {property.beds}
-                    </span>
-                    <span className="flex flex-col items-center gap-0.5 bg-muted/50 px-2 py-1 rounded-xl">
-                      <Bath className="h-4 w-4 text-primary" /> {property.baths}
-                    </span>
-                    {property.plot > 0 && (
-                      <span className="flex flex-col items-center gap-0.5 bg-muted/50 px-2 py-1 rounded-xl">
-                        <Maximize2 className="h-4 w-4 text-primary" /> {property.plot}
-                      </span>
+                  <div className="flex gap-2">
+                    <div className="flex flex-col items-center justify-center h-12 w-12 bg-muted/40 rounded-2xl group/stat hover:bg-primary/5 transition-colors">
+                      <Bed className="h-4 w-4 text-primary mb-0.5" />
+                      <span className="text-[10px] font-black">{property.beds}</span>
+                    </div>
+                    <div className="flex flex-col items-center justify-center h-12 w-12 bg-muted/40 rounded-2xl group/stat hover:bg-primary/5 transition-colors">
+                      <Bath className="h-4 w-4 text-primary mb-0.5" />
+                      <span className="text-[10px] font-black">{property.baths}</span>
+                    </div>
+                    {property.living > 0 && (
+                      <div className="flex flex-col items-center justify-center h-12 w-12 bg-muted/40 rounded-2xl group/stat hover:bg-primary/5 transition-colors">
+                        <Maximize2 className="h-4 w-4 text-primary mb-0.5" />
+                        <span className="text-[10px] font-black">{property.living}</span>
+                      </div>
                     )}
                   </div>
                 </div>

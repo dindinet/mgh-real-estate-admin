@@ -10,15 +10,20 @@ import {
   ChevronLeft,
   Save,
   Loader2,
-  MapPin,
   CircleDollarSign,
   Info,
   Image as ImageIcon,
-  AlertCircle,
-  LayoutGrid
+  LayoutGrid,
+  Languages,
+  Waves,
+  Wind,
+  Home,
+  CheckCircle2,
+  Maximize
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import {
   Form,
@@ -27,9 +32,11 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
+  FormDescription,
 } from '@/components/ui/form';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
 import { ImageManager } from '@/components/media/ImageManager';
 import { cn } from '@/lib/utils';
@@ -44,10 +51,37 @@ const propertySchema = z.object({
   area: z.string().optional(),
   price: z.coerce.number().min(0),
   originalprice: z.coerce.number().min(0),
+  frequency: z.string().default('Sale'),
   beds: z.coerce.number().min(0),
   baths: z.coerce.number().min(0),
+  living: z.coerce.number().min(0),
+  plot: z.coerce.number().min(0),
   display: z.boolean().default(true),
   salestage: z.coerce.number().min(0).max(2).default(0),
+  description: z.string().min(10, 'Description is required'),
+  moredetails: z.string().optional(),
+  DE: z.string().optional(),
+  FR: z.string().optional(),
+  NL: z.string().optional(),
+  rental: z.boolean().default(false),
+  finca: z.boolean().default(false),
+  penthouse: z.boolean().default(false),
+  luxury: z.boolean().default(false),
+  offplan: z.boolean().default(false),
+  leasehold: z.boolean().default(false),
+  golf: z.boolean().default(false),
+  beach: z.boolean().default(false),
+  aircon: z.boolean().default(false),
+  pool: z.boolean().default(false),
+  fireplace: z.boolean().default(false),
+  heating: z.boolean().default(false),
+  solarium: z.boolean().default(false),
+  balconies: z.boolean().default(false),
+  furnished: z.boolean().default(false),
+  kitchen: z.boolean().default(false),
+  utility: z.boolean().default(false),
+  topsix: z.boolean().default(false),
+  kyeroPrime: z.boolean().default(false),
 });
 type PropertyFormValues = z.infer<typeof propertySchema>;
 export function PropertyEditorPage() {
@@ -74,31 +108,50 @@ export function PropertyEditorPage() {
       area: '',
       price: 0,
       originalprice: 0,
+      frequency: 'Sale',
       beds: 0,
       baths: 0,
+      living: 0,
+      plot: 0,
       display: true,
       salestage: 0,
+      description: '',
+      moredetails: '',
+      DE: '',
+      FR: '',
+      NL: '',
+      rental: false,
+      finca: false,
+      penthouse: false,
+      luxury: false,
+      offplan: false,
+      leasehold: false,
+      golf: false,
+      beach: false,
+      aircon: false,
+      pool: false,
+      fireplace: false,
+      heating: false,
+      solarium: false,
+      balconies: false,
+      furnished: false,
+      kitchen: false,
+      utility: false,
+      topsix: false,
+      kyeroPrime: false,
     },
   });
   const typedControl = form.control as unknown as Control<PropertyFormValues>;
   useEffect(() => {
     if (existingProperty) {
       form.reset({
-        ref: existingProperty.ref,
+        ...existingProperty,
         kref: existingProperty.kref || '',
-        title: existingProperty.title,
-        ptype: existingProperty.ptype,
-        province: existingProperty.province,
-        town: existingProperty.town,
-        location: existingProperty.location,
         area: existingProperty.area || '',
-        price: existingProperty.price,
-        originalprice: existingProperty.originalprice,
-        beds: existingProperty.beds,
-        baths: existingProperty.baths,
-        display: existingProperty.display,
-        salestage: existingProperty.salestage,
-      });
+        DE: existingProperty.DE || '',
+        FR: existingProperty.FR || '',
+        NL: existingProperty.NL || '',
+      } as any);
     }
   }, [existingProperty, form]);
   const mutation = useMutation({
@@ -123,50 +176,82 @@ export function PropertyEditorPage() {
   });
   if (isEditing && isLoadingProperty) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <div className="flex items-center justify-center h-96">
+        <Loader2 className="h-12 w-12 animate-spin text-primary" />
       </div>
     );
   }
+  const features = [
+    { name: 'rental', label: 'Rental Potential', icon: CircleDollarSign },
+    { name: 'luxury', label: 'Luxury Listing', icon: ImageIcon },
+    { name: 'pool', label: 'Swimming Pool', icon: Waves },
+    { name: 'beach', label: 'Near Beach', icon: Home },
+    { name: 'aircon', label: 'Air Conditioning', icon: Wind },
+    { name: 'heating', label: 'Heating System', icon: Wind },
+    { name: 'finca', label: 'Finca/Country', icon: Home },
+    { name: 'penthouse', label: 'Penthouse', icon: Home },
+    { name: 'golf', label: 'Golf Frontline', icon: Home },
+    { name: 'offplan', label: 'Off Plan', icon: Home },
+    { name: 'furnished', label: 'Furnished', icon: Home },
+    { name: 'kitchen', label: 'Equipped Kitchen', icon: Home },
+    { name: 'utility', label: 'Utility Room', icon: Home },
+    { name: 'solarium', label: 'Solarium', icon: Wind },
+    { name: 'balconies', label: 'Balconies', icon: Home },
+    { name: 'fireplace', label: 'Fireplace', icon: Wind },
+    { name: 'topsix', label: 'Top Six Selection', icon: CheckCircle2 },
+    { name: 'kyeroPrime', label: 'Kyero Prime', icon: CheckCircle2 },
+  ];
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div className="py-8 md:py-10 lg:py-12 space-y-8 animate-fade-in">
-        <div className="flex items-center justify-between">
+      <div className="py-8 md:py-10 lg:py-12 space-y-10 animate-fade-in">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" onClick={() => navigate('/properties')} className="rounded-full">
-              <ChevronLeft className="h-5 w-5" />
+            <Button variant="ghost" size="icon" onClick={() => navigate('/properties')} className="rounded-full h-12 w-12 hover:bg-muted">
+              <ChevronLeft className="h-6 w-6" />
             </Button>
             <div>
-              <h1 className="text-3xl font-display font-bold tracking-tight text-primary">
-                {isEditing ? 'Edit MGH Listing' : 'New MGH Listing'}
+              <h1 className="text-4xl font-display font-bold tracking-tight text-foreground">
+                {isEditing ? 'Modify Portfolio' : 'New Listing'}
               </h1>
-              <p className="text-muted-foreground">
-                MaxGoldHouse Portfolio • {isEditing ? `Ref: ${ref}` : 'Crafting a new luxury entry'}
+              <p className="text-muted-foreground font-medium">
+                {isEditing ? `Referencing ID: ${ref}` : 'Expanding the MaxGoldHouse luxury collection'}
               </p>
             </div>
           </div>
+          <div className="flex gap-4">
+             <Button type="button" variant="outline" className="h-12 px-6 rounded-xl font-bold" onClick={() => navigate('/properties')}>Cancel</Button>
+             <Button 
+                onClick={form.handleSubmit((values) => mutation.mutate(values))}
+                className="h-12 px-8 btn-gradient rounded-xl font-bold shadow-xl min-w-[160px]" 
+                disabled={mutation.isPending}
+             >
+                {mutation.isPending ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <Save className="mr-2 h-5 w-5" />}
+                {isEditing ? 'Save Changes' : 'Publish Property'}
+             </Button>
+          </div>
         </div>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit((values) => mutation.mutate(values))} className="space-y-8">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-              <div className="lg:col-span-2 space-y-8">
-                <Card className="border-border/50 shadow-soft overflow-hidden">
-                  <CardHeader className="bg-muted/30">
-                    <div className="flex items-center gap-2 text-primary font-semibold">
+          <form className="space-y-10">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
+              <div className="lg:col-span-2 space-y-10">
+                {/* 1. Core Information */}
+                <Card className="border-border/50 shadow-soft overflow-hidden rounded-3xl">
+                  <CardHeader className="bg-muted/30 border-b">
+                    <div className="flex items-center gap-2 text-primary">
                       <Info className="h-5 w-5" />
-                      <CardTitle className="text-lg">Core Information</CardTitle>
+                      <CardTitle className="text-lg">Identity & Location</CardTitle>
                     </div>
                   </CardHeader>
-                  <CardContent className="p-6 space-y-6">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                  <CardContent className="p-8 space-y-8">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                       <FormField
                         control={typedControl}
                         name="ref"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Public Reference</FormLabel>
+                            <FormLabel className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Internal Reference</FormLabel>
                             <FormControl>
-                              <Input placeholder="MGH-000" {...field} disabled={isEditing} className="h-11 rounded-xl uppercase font-bold" />
+                              <Input placeholder="MGH-000" {...field} disabled={isEditing} className="h-12 rounded-xl border-2 focus:border-primary uppercase font-bold text-lg" />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -177,9 +262,9 @@ export function PropertyEditorPage() {
                         name="kref"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Legacy Reference (Optional)</FormLabel>
+                            <FormLabel className="text-sm font-bold uppercase tracking-wider text-muted-foreground">External Legacy ID</FormLabel>
                             <FormControl>
-                              <Input placeholder="K-000" {...field} className="h-11 rounded-xl" />
+                              <Input placeholder="K-000" {...field} className="h-12 rounded-xl" />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -191,23 +276,48 @@ export function PropertyEditorPage() {
                       name="title"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Property Title</FormLabel>
+                          <FormLabel className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Property Title</FormLabel>
                           <FormControl>
-                            <Input placeholder="e.g. Modern Glass Villa" {...field} className="h-11 rounded-xl" />
+                            <Input placeholder="e.g. Modern Glass Villa with Ocean Views" {...field} className="h-12 rounded-xl text-lg font-medium" />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                      <FormField
+                        control={typedControl}
+                        name="ptype"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Property Type</FormLabel>
+                            <Select onValueChange={field.onChange} value={field.value}>
+                              <FormControl>
+                                <SelectTrigger className="h-12 rounded-xl">
+                                  <SelectValue placeholder="Type" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value="Villa">Villa</SelectItem>
+                                <SelectItem value="Apartment">Apartment</SelectItem>
+                                <SelectItem value="Finca">Finca</SelectItem>
+                                <SelectItem value="Townhouse">Townhouse</SelectItem>
+                                <SelectItem value="Penthouse">Penthouse</SelectItem>
+                                <SelectItem value="Plot">Plot</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
                       <FormField
                         control={typedControl}
                         name="province"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Province</FormLabel>
+                            <FormLabel className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Province</FormLabel>
                             <FormControl>
-                              <Input placeholder="e.g. Alicante" {...field} className="h-11 rounded-xl" />
+                              <Input placeholder="Alicante" {...field} className="h-12 rounded-xl" />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -218,116 +328,301 @@ export function PropertyEditorPage() {
                         name="town"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Town</FormLabel>
+                            <FormLabel className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Town</FormLabel>
                             <FormControl>
-                              <Input placeholder="e.g. Javea" {...field} className="h-11 rounded-xl" />
+                              <Input placeholder="Javea" {...field} className="h-12 rounded-xl" />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
                         )}
                       />
                     </div>
+                    <FormField
+                      control={typedControl}
+                      name="location"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Exact Area / Location Description</FormLabel>
+                          <FormControl>
+                            <Input placeholder="e.g. Near Cabo de la Nao" {...field} className="h-12 rounded-xl" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
                   </CardContent>
                 </Card>
-                <Card className="border-border/50 shadow-soft overflow-hidden">
-                  <CardHeader className="bg-muted/30">
-                    <div className="flex items-center gap-2 text-primary font-semibold">
-                      <CircleDollarSign className="h-5 w-5" />
-                      <CardTitle className="text-lg">Price & Status</CardTitle>
+                {/* 2. Localization & Content */}
+                <Card className="border-border/50 shadow-soft overflow-hidden rounded-3xl">
+                  <CardHeader className="bg-muted/30 border-b">
+                    <div className="flex items-center gap-2 text-primary">
+                      <Languages className="h-5 w-5" />
+                      <CardTitle className="text-lg">Multilingual Content</CardTitle>
                     </div>
                   </CardHeader>
-                  <CardContent className="p-6 space-y-6">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                      <FormField
-                        control={typedControl}
-                        name="price"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Active Price ($)</FormLabel>
-                            <FormControl>
-                              <Input type="number" {...field} className="h-11 rounded-xl font-bold text-primary" />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={typedControl}
-                        name="salestage"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Sales Stage</FormLabel>
-                            <Select onValueChange={field.onChange} value={field.value.toString()}>
+                  <CardContent className="p-8">
+                    <Tabs defaultValue="EN" className="space-y-6">
+                      <TabsList className="bg-muted p-1 rounded-xl w-full sm:w-auto h-auto grid grid-cols-4 sm:flex sm:flex-row">
+                        <TabsTrigger value="EN" className="rounded-lg py-2 px-6 font-bold">English</TabsTrigger>
+                        <TabsTrigger value="DE" className="rounded-lg py-2 px-6 font-bold">Deutsch</TabsTrigger>
+                        <TabsTrigger value="FR" className="rounded-lg py-2 px-6 font-bold">Français</TabsTrigger>
+                        <TabsTrigger value="NL" className="rounded-lg py-2 px-6 font-bold">Nederlands</TabsTrigger>
+                      </TabsList>
+                      <TabsContent value="EN" className="space-y-6">
+                        <FormField
+                          control={typedControl}
+                          name="description"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="font-bold">Primary Description (English)</FormLabel>
                               <FormControl>
-                                <SelectTrigger className="h-11 rounded-xl">
-                                  <SelectValue placeholder="Select stage" />
-                                </SelectTrigger>
+                                <Textarea {...field} className="min-h-[200px] rounded-2xl resize-none leading-relaxed" placeholder="Write a compelling story for the English market..." />
                               </FormControl>
-                              <SelectContent>
-                                <SelectItem value="0">For Sale (Available)</SelectItem>
-                                <SelectItem value="1">Reserved</SelectItem>
-                                <SelectItem value="2">Sold</SelectItem>
-                              </SelectContent>
-                            </Select>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </TabsContent>
+                      <TabsContent value="DE">
+                        <FormField
+                          control={typedControl}
+                          name="DE"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="font-bold">German Description</FormLabel>
+                              <FormControl>
+                                <Textarea {...field} className="min-h-[200px] rounded-2xl resize-none" placeholder="Deutsche Beschreibung hier eingeben..." />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </TabsContent>
+                      <TabsContent value="FR">
+                        <FormField
+                          control={typedControl}
+                          name="FR"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="font-bold">French Description</FormLabel>
+                              <FormControl>
+                                <Textarea {...field} className="min-h-[200px] rounded-2xl resize-none" placeholder="Saisissez la description en français ici..." />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </TabsContent>
+                      <TabsContent value="NL">
+                        <FormField
+                          control={typedControl}
+                          name="NL"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="font-bold">Dutch Description</FormLabel>
+                              <FormControl>
+                                <Textarea {...field} className="min-h-[200px] rounded-2xl resize-none" placeholder="Voer hier de Nederlandse beschrijving in..." />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </TabsContent>
+                    </Tabs>
+                  </CardContent>
+                </Card>
+                {/* 3. Features Grid */}
+                <Card className="border-border/50 shadow-soft overflow-hidden rounded-3xl">
+                  <CardHeader className="bg-muted/30 border-b">
+                    <div className="flex items-center gap-2 text-primary">
+                      <LayoutGrid className="h-5 w-5" />
+                      <CardTitle className="text-lg">Property Amenities & Features</CardTitle>
                     </div>
-                    <div className="flex items-center justify-between p-4 bg-muted/20 rounded-2xl border border-dashed">
-                      <div className="space-y-0.5">
-                        <p className="text-sm font-bold">Public Visibility</p>
-                        <p className="text-xs text-muted-foreground">Toggle visibility on the main website portal</p>
-                      </div>
-                      <FormField
-                        control={typedControl}
-                        name="display"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormControl>
-                              <Switch checked={field.value} onCheckedChange={field.onChange} />
-                            </FormControl>
-                          </FormItem>
-                        )}
-                      />
+                  </CardHeader>
+                  <CardContent className="p-8">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-x-10 gap-y-6">
+                      {features.map((feature) => (
+                        <FormField
+                          key={feature.name}
+                          control={typedControl}
+                          name={feature.name as any}
+                          render={({ field }) => (
+                            <FormItem className="flex flex-row items-center justify-between space-y-0 bg-muted/20 p-4 rounded-2xl border border-transparent hover:border-primary/20 transition-all">
+                              <div className="flex items-center gap-3">
+                                <feature.icon className="h-4 w-4 text-primary/60" />
+                                <FormLabel className="text-sm font-semibold cursor-pointer">{feature.label}</FormLabel>
+                              </div>
+                              <FormControl>
+                                <Switch checked={field.value} onCheckedChange={field.onChange} />
+                              </FormControl>
+                            </FormItem>
+                          )}
+                        />
+                      ))}
                     </div>
                   </CardContent>
                 </Card>
               </div>
-              <div className="space-y-8">
-                <Card className={cn("border-border/50 shadow-soft", isEditing ? "bg-card" : "bg-muted/10")}>
+              <div className="space-y-10">
+                {/* 4. Financials */}
+                <Card className="border-border/50 shadow-soft rounded-3xl overflow-hidden">
+                  <CardHeader className="bg-muted/30 border-b">
+                    <div className="flex items-center gap-2 text-primary">
+                      <CircleDollarSign className="h-5 w-5" />
+                      <CardTitle className="text-lg">Pricing & Status</CardTitle>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="p-6 space-y-6">
+                    <FormField
+                      control={typedControl}
+                      name="price"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="font-bold text-xs uppercase text-muted-foreground">Current Listing Price ($)</FormLabel>
+                          <FormControl>
+                            <Input type="number" {...field} className="h-12 rounded-xl font-bold text-2xl text-primary border-2 border-primary/20" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={typedControl}
+                      name="originalprice"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="font-bold text-xs uppercase text-muted-foreground">Market Comparison Price ($)</FormLabel>
+                          <FormControl>
+                            <Input type="number" {...field} className="h-10 rounded-xl" />
+                          </FormControl>
+                          <FormDescription>Shows a "was" price if higher than current price</FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={typedControl}
+                      name="salestage"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="font-bold text-xs uppercase text-muted-foreground">Global Sales Stage</FormLabel>
+                          <Select onValueChange={field.onChange} value={field.value.toString()}>
+                            <FormControl>
+                              <SelectTrigger className="h-12 rounded-xl">
+                                <SelectValue placeholder="Select status" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="0">For Sale</SelectItem>
+                              <SelectItem value="1">Reserved</SelectItem>
+                              <SelectItem value="2">Sold</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={typedControl}
+                      name="display"
+                      render={({ field }) => (
+                        <FormItem className="flex items-center justify-between p-4 bg-primary/5 rounded-2xl border-2 border-dashed border-primary/20">
+                          <div className="space-y-0.5">
+                            <FormLabel className="font-bold">Public Portal</FormLabel>
+                            <FormDescription className="text-[10px]">Show on public website</FormDescription>
+                          </div>
+                          <FormControl>
+                            <Switch checked={field.value} onCheckedChange={field.onChange} />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                  </CardContent>
+                </Card>
+                {/* 5. Specifications */}
+                <Card className="border-border/50 shadow-soft rounded-3xl overflow-hidden">
+                   <CardHeader className="bg-muted/30 border-b">
+                    <div className="flex items-center gap-2 text-primary">
+                      <Maximize className="h-5 w-5" />
+                      <CardTitle className="text-lg">Specifications</CardTitle>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="p-6">
+                    <div className="grid grid-cols-2 gap-6">
+                      <FormField
+                        control={typedControl}
+                        name="beds"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="font-bold text-[10px] uppercase text-muted-foreground">Bedrooms</FormLabel>
+                            <FormControl><Input type="number" {...field} className="h-11 rounded-xl" /></FormControl>
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={typedControl}
+                        name="baths"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="font-bold text-[10px] uppercase text-muted-foreground">Bathrooms</FormLabel>
+                            <FormControl><Input type="number" {...field} className="h-11 rounded-xl" /></FormControl>
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={typedControl}
+                        name="living"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="font-bold text-[10px] uppercase text-muted-foreground">Living Sqm</FormLabel>
+                            <FormControl><Input type="number" {...field} className="h-11 rounded-xl" /></FormControl>
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={typedControl}
+                        name="plot"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="font-bold text-[10px] uppercase text-muted-foreground">Plot Sqm</FormLabel>
+                            <FormControl><Input type="number" {...field} className="h-11 rounded-xl" /></FormControl>
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                  </CardContent>
+                </Card>
+                {/* 6. Media Manager Hook */}
+                <Card className={cn("border-border/50 shadow-soft rounded-3xl overflow-hidden", isEditing ? "bg-card" : "bg-muted/10")}>
                   <CardHeader>
                     <div className="flex items-center gap-2 text-primary font-semibold">
                       <ImageIcon className="h-5 w-5" />
-                      <CardTitle className="text-lg">Gallery</CardTitle>
+                      <CardTitle className="text-lg">Media Gallery</CardTitle>
                     </div>
                   </CardHeader>
-                  <CardContent className="text-center py-6 px-4">
+                  <CardContent className="text-center py-6 px-4 space-y-4">
                     {isEditing ? (
-                      <div className="space-y-4">
-                        <div className="aspect-video rounded-2xl bg-slate-100 overflow-hidden border">
+                      <>
+                        <div className="aspect-video rounded-2xl bg-muted/50 overflow-hidden border-2 border-dashed relative group">
                           {existingProperty?.images?.[0] ? (
-                            <img src={existingProperty.images[0]} className="w-full h-full object-cover" />
+                            <img src={existingProperty.images[0]} className="w-full h-full object-cover transition-transform group-hover:scale-105" />
                           ) : (
                             <div className="w-full h-full flex flex-col items-center justify-center opacity-20"><ImageIcon className="h-10 w-10" /></div>
                           )}
+                          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity cursor-pointer" onClick={() => setIsImageManagerOpen(true)}>
+                            <p className="text-white font-bold">Manage {existingProperty?.images?.length || 0} Assets</p>
+                          </div>
                         </div>
-                        <Button variant="outline" className="w-full h-11 rounded-xl font-bold" type="button" onClick={() => setIsImageManagerOpen(true)}>
-                          Manage Media
+                        <Button variant="outline" className="w-full h-12 rounded-xl font-bold border-2" type="button" onClick={() => setIsImageManagerOpen(true)}>
+                          Manage Media Assets
                         </Button>
-                      </div>
+                      </>
                     ) : (
-                      <p className="text-sm text-muted-foreground">Save basic details first to upload images</p>
+                      <div className="bg-muted/20 p-6 rounded-2xl text-sm font-medium text-muted-foreground border-2 border-dashed">
+                        Publish basic details to activate the media suite.
+                      </div>
                     )}
                   </CardContent>
                 </Card>
-                <div className="flex flex-col gap-3">
-                  <Button type="submit" className="w-full h-14 btn-gradient rounded-2xl font-bold text-lg shadow-xl" disabled={mutation.isPending}>
-                    {mutation.isPending ? <Loader2 className="mr-2 h-6 w-6 animate-spin" /> : <Save className="mr-2 h-6 w-6" />}
-                    {isEditing ? 'Update Property' : 'Publish Property'}
-                  </Button>
-                  <Button type="button" variant="ghost" className="w-full h-12 rounded-xl" onClick={() => navigate('/properties')}>Cancel</Button>
-                </div>
               </div>
             </div>
           </form>

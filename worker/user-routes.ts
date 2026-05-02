@@ -8,43 +8,50 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
     await PropertyEntity.ensureSeed(c.env);
     const cq = c.req.query('cursor');
     const lq = c.req.query('limit');
+    // Ensure properties are loaded and paged
     const page = await PropertyEntity.list(c.env, cq ?? null, lq ? Math.max(1, (Number(lq) | 0)) : 40);
     return ok(c, page);
   });
   app.get('/api/properties/:ref', async (c) => {
     const ref = c.req.param('ref');
     const entity = new PropertyEntity(c.env, ref);
-    if (!await entity.exists()) return notFound(c, 'Property not found');
+    if (!await entity.exists()) return notFound(c, 'Property profile not found in MGH database');
     return ok(c, await entity.getState());
   });
   app.post('/api/properties', async (c) => {
     const body = await c.req.json();
-    if (!body.ref || !body.title) return bad(c, 'Ref and Title required');
+    if (!body.ref || !body.title) return bad(c, 'Critical failure: Reference and Title are mandatory for indexing');
     // Check if ref exists (Simulating UNIQUE constraint)
     const entity = new PropertyEntity(c.env, body.ref);
-    if (await entity.exists()) return bad(c, 'Property reference already exists');
+    if (await entity.exists()) return bad(c, `Data collision: Property reference '${body.ref}' is already allocated`);
     const now = new Date().toISOString();
+    // Construct full property object with defaults for missing fields
     const property = {
-      ...body,
+      ...PropertyEntity.initialState, // Start with defaults
+      ...body,                       // Overlay payload
       id: crypto.randomUUID(),
       images: body.images || [],
       created: now,
       lastEdited: now,
       kdate: now
     };
-    return ok(c, await PropertyEntity.create(c.env, property));
+    const saved = await PropertyEntity.create(c.env, property);
+    return ok(c, saved);
   });
   app.patch('/api/properties/:ref', async (c) => {
     const ref = c.req.param('ref');
     const body = await c.req.json();
     const entity = new PropertyEntity(c.env, ref);
-    if (!await entity.exists()) return notFound(c, 'Property not found');
-    const updates = {
-      ...body,
-      lastEdited: new Date().toISOString()
-    };
-    await entity.patch(updates);
-    return ok(c, await entity.getState());
+    if (!await entity.exists()) return notFound(c, 'Patch target not found');
+    // Atomic update using mutate to ensure consistency for massive schema
+    const updated = await entity.mutate(current => {
+      return {
+        ...current,
+        ...body,
+        lastEdited: new Date().toISOString()
+      };
+    });
+    return ok(c, updated);
   });
   app.delete('/api/properties/:ref', async (c) => {
     const ref = c.req.param('ref');
