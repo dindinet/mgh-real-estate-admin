@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -28,6 +28,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { toast } from 'sonner';
+import { ImageManager } from '@/components/media/ImageManager';
 const propertySchema = z.object({
   ref: z.string().min(3, 'Reference must be at least 3 characters'),
   title: z.string().min(5, 'Title must be at least 5 characters'),
@@ -41,6 +42,7 @@ export function PropertyEditorPage() {
   const { ref } = useParams();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const [isImageManagerOpen, setIsImageManagerOpen] = useState(false);
   const isEditing = !!ref;
   const { data: existingProperty, isLoading: isLoadingProperty } = useQuery({
     queryKey: ['property', ref],
@@ -72,6 +74,12 @@ export function PropertyEditorPage() {
   }, [existingProperty, form]);
   const mutation = useMutation({
     mutationFn: (values: PropertyFormValues) => {
+      if (isEditing) {
+        return api<Property>(`/api/properties/${ref}`, {
+          method: 'PATCH',
+          body: JSON.stringify(values),
+        });
+      }
       return api<Property>('/api/properties', {
         method: 'POST',
         body: JSON.stringify(values),
@@ -232,19 +240,30 @@ export function PropertyEditorPage() {
                   </div>
                 </CardHeader>
                 <CardContent className="text-center py-6">
-                  {isEditing && existingProperty?.images?.length ? (
+                  {isEditing ? (
                     <div className="space-y-4">
-                      <div className="relative aspect-[16/10] rounded-xl overflow-hidden shadow-inner bg-slate-200">
-                        <img 
-                          src={existingProperty.images[0]} 
-                          className="object-cover w-full h-full"
-                          alt="Cover"
-                        />
-                        <div className="absolute bottom-2 right-2 px-2 py-1 bg-black/50 backdrop-blur rounded text-white text-2xs">
-                          {existingProperty.images.length} Photos
+                      <div className="relative aspect-[16/10] rounded-xl overflow-hidden shadow-inner bg-slate-200 dark:bg-slate-800">
+                        {existingProperty?.images?.length ? (
+                          <img
+                            src={existingProperty.images[0]}
+                            className="object-cover w-full h-full"
+                            alt="Cover"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-muted-foreground italic text-sm">
+                            No images uploaded
+                          </div>
+                        )}
+                        <div className="absolute bottom-2 right-2 px-2 py-1 bg-black/50 backdrop-blur rounded text-white text-[10px]">
+                          {existingProperty?.images?.length || 0} Photos
                         </div>
                       </div>
-                      <Button variant="outline" className="w-full rounded-xl" type="button">
+                      <Button 
+                        variant="outline" 
+                        className="w-full rounded-xl" 
+                        type="button"
+                        onClick={() => setIsImageManagerOpen(true)}
+                      >
                         Manage Gallery
                       </Button>
                     </div>
@@ -257,8 +276,8 @@ export function PropertyEditorPage() {
                 </CardContent>
               </Card>
               <div className="flex flex-col gap-3">
-                <Button 
-                  type="submit" 
+                <Button
+                  type="submit"
                   className="w-full h-12 btn-gradient rounded-xl font-bold text-lg"
                   disabled={mutation.isPending}
                 >
@@ -269,9 +288,9 @@ export function PropertyEditorPage() {
                   )}
                   {isEditing ? 'Update Listing' : 'Publish Listing'}
                 </Button>
-                <Button 
-                  type="button" 
-                  variant="ghost" 
+                <Button
+                  type="button"
+                  variant="ghost"
                   className="w-full h-11 rounded-xl"
                   onClick={() => navigate('/properties')}
                 >
@@ -282,6 +301,14 @@ export function PropertyEditorPage() {
           </div>
         </form>
       </Form>
+      {isEditing && existingProperty && (
+        <ImageManager 
+          isOpen={isImageManagerOpen}
+          onClose={() => setIsImageManagerOpen(false)}
+          propertyRef={existingProperty.ref}
+          initialImages={existingProperty.images}
+        />
+      )}
     </div>
   );
 }

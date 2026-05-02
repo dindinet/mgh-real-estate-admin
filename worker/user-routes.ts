@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import type { Env } from './core-utils';
 import { UserEntity, PropertyEntity } from "./entities";
-import { ok, bad, notFound, isStr } from './core-utils';
+import { ok, bad, notFound } from './core-utils';
 export function userRoutes(app: Hono<{ Bindings: Env }>) {
   // PROPERTIES
   app.get('/api/properties', async (c) => {
@@ -24,10 +24,23 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
     const property = {
       ...body,
       id: crypto.randomUUID(),
+      images: body.images || [],
       created: now,
       lastEdited: now
     };
     return ok(c, await PropertyEntity.create(c.env, property));
+  });
+  app.patch('/api/properties/:ref', async (c) => {
+    const ref = c.req.param('ref');
+    const body = await c.req.json();
+    const entity = new PropertyEntity(c.env, ref);
+    if (!await entity.exists()) return notFound(c, 'Property not found');
+    const updates = {
+      ...body,
+      lastEdited: Date.now()
+    };
+    await entity.patch(updates);
+    return ok(c, await entity.getState());
   });
   app.delete('/api/properties/:ref', async (c) => {
     const ref = c.req.param('ref');

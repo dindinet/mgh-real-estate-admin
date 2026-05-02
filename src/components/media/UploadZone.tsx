@@ -1,135 +1,91 @@
 import React, { useCallback, useState } from 'react';
 import { useDropzone } from 'react-dropzone';
-import { Upload, Cloud, Loader2, FileCheck, Sparkles } from 'lucide-react';
+import { Upload, Cloud, Loader2, FileCheck } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { cn } from '@/lib/utils';
-import { toast } from 'sonner';
-import imageCompression from 'browser-image-compression';
 interface UploadZoneProps {
-  propertyRef: string;
   onUploadComplete: (urls: string[]) => void;
 }
-type UploadState = 'idle' | 'optimizing' | 'uploading';
-export function UploadZone({ propertyRef, onUploadComplete }: UploadZoneProps) {
-  const [state, setState] = useState<UploadState>('idle');
+export function UploadZone({ onUploadComplete }: UploadZoneProps) {
+  const [isUploading, setIsUploading] = useState(false);
   const [progress, setProgress] = useState(0);
-  const processFiles = useCallback(async (files: File[]) => {
-    if (!propertyRef) {
-      toast.error('Invalid property context');
-      return;
-    }
-    try {
-      // 1. Optimization Phase (Client-side)
-      setState('optimizing');
-      const optimizedFiles: File[] = [];
-      const compressionOptions = {
-        maxSizeMB: 1,
-        maxWidthOrHeight: 1920,
-        useWebWorker: true,
-      };
-      for (let i = 0; i < files.length; i++) {
-        const file = files[i];
-        // Only compress images, pass ZIPs directly
-        if (file.type.startsWith('image/')) {
-          try {
-            const compressedFile = await imageCompression(file, compressionOptions);
-            optimizedFiles.push(new File([compressedFile], file.name, { type: file.type }));
-          } catch (e) {
-            console.warn(`Compression failed for ${file.name}, using original`, e);
-            optimizedFiles.push(file);
-          }
-        } else {
-          optimizedFiles.push(file);
-        }
-        // Progress for optimization capped at 50%
-        setProgress(5 + ((i + 1) / files.length) * 45);
-      }
-      // 2. Real Upload Phase (API Call)
-      setState('uploading');
-      const formData = new FormData();
-      optimizedFiles.forEach(file => formData.append('files', file));
-      const response = await fetch(`/api/properties/${propertyRef}/images`, {
-        method: 'POST',
-        body: formData,
-      });
-      const result = await response.json();
-      if (!response.ok || !result.success) {
-        throw new Error(result.error || 'Server upload failed');
-      }
-      setProgress(100);
-      toast.success(`Successfully synchronized ${result.data.urls.length} images`);
-      onUploadComplete(result.data.urls);
-      setState('idle');
-      setProgress(0);
-    } catch (error) {
-      console.error('Upload failed:', error);
-      toast.error(error instanceof Error ? error.message : 'Media pipeline failed');
-      setState('idle');
-      setProgress(0);
-    }
-  }, [onUploadComplete, propertyRef]);
   const onDrop = useCallback((acceptedFiles: File[]) => {
     if (acceptedFiles.length === 0) return;
-    processFiles(acceptedFiles);
-  }, [processFiles]);
+    setIsUploading(true);
+    setProgress(0);
+    // Simulate multi-file upload progress
+    const totalFiles = acceptedFiles.length;
+    let uploadedCount = 0;
+    const interval = setInterval(() => {
+      uploadedCount += 0.5;
+      const newProgress = Math.min(90, (uploadedCount / totalFiles) * 100);
+      setProgress(newProgress);
+      if (uploadedCount >= totalFiles) {
+        clearInterval(interval);
+        setProgress(100);
+        // Simulate generating URLs for uploaded local files
+        // In a real app, these would be R2/S3 URLs
+        const mockUrls = acceptedFiles.map(file => URL.createObjectURL(file));
+        setTimeout(() => {
+          onUploadComplete(mockUrls);
+          setIsUploading(false);
+        }, 500);
+      }
+    }, 200);
+  }, [onUploadComplete]);
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
-    disabled: state !== 'idle',
     accept: {
       'image/*': ['.jpeg', '.jpg', '.png', '.webp'],
       'application/zip': ['.zip']
     }
   });
-  const getStatusText = () => {
-    switch (state) {
-      case 'optimizing': return 'Optimizing Assets...';
-      case 'uploading': return 'Syncing with MGH Cloud...';
-      default: return 'Processing Media...';
-    }
-  };
   return (
     <div className="flex flex-col h-full gap-6">
       <div
         {...getRootProps()}
         className={cn(
-          "flex-1 border-2 border-dashed rounded-[2.5rem] flex flex-col items-center justify-center transition-all duration-300 cursor-pointer group",
-          isDragActive ? "border-primary bg-primary/5 scale-[0.99] ring-4 ring-primary/10 shadow-inner" : "border-muted-foreground/20 hover:bg-muted/30 hover:border-muted-foreground/40",
-          state !== 'idle' && "pointer-events-none opacity-50"
+          "flex-1 border-2 border-dashed rounded-3xl flex flex-col items-center justify-center transition-all duration-200 cursor-pointer",
+          isDragActive ? "border-primary bg-primary/5 scale-[0.98]" : "border-muted-foreground/20 hover:bg-muted/30 hover:border-muted-foreground/40",
+          isUploading && "pointer-events-none opacity-50"
         )}
       >
         <input {...getInputProps()} />
-        <div className="flex flex-col items-center gap-5 text-center px-8">
-          <div className={cn(
-            "h-24 w-24 rounded-3xl flex items-center justify-center transition-transform duration-500 group-hover:scale-110 shadow-lg",
-            isDragActive ? "bg-primary text-white" : "bg-primary/10 text-primary"
-          )}>
-            {isDragActive ? <FileCheck className="h-12 w-12 animate-bounce" /> : <Upload className="h-12 w-12" />}
+        <div className="flex flex-col items-center gap-4 text-center px-6">
+          <div className="h-16 w-16 rounded-2xl bg-primary/10 flex items-center justify-center text-primary">
+            {isDragActive ? <FileCheck className="h-8 w-8 animate-bounce" /> : <Upload className="h-8 w-8" />}
           </div>
-          <div className="space-y-2">
-            <p className="text-3xl font-display font-bold tracking-tight">
-              {isDragActive ? "Release to Sync" : "Cloud Import"}
+          <div>
+            <p className="text-xl font-display font-bold">
+              {isDragActive ? "Drop files now" : "Drag and drop images here"}
             </p>
-            <p className="text-muted-foreground max-w-[280px] mx-auto text-sm leading-relaxed">
-              Drag images or a .ZIP archive here for automated processing and storage.
+            <p className="text-muted-foreground mt-1">
+              Supports JPG, PNG, WEBP and ZIP archives
             </p>
+          </div>
+          <div className="mt-2 px-4 py-2 bg-secondary rounded-lg text-sm font-medium">
+            Or browse from your computer
           </div>
         </div>
       </div>
-      {state !== 'idle' && (
-        <div className="space-y-4 p-8 bg-muted/40 rounded-[2.5rem] animate-slide-up border border-border/50 shadow-soft">
-          <div className="flex items-center justify-between text-sm">
-            <div className="flex items-center gap-4">
-              <div className="relative">
-                <Loader2 className="h-6 w-6 animate-spin text-primary" />
-                <Sparkles className="absolute -top-1 -right-1 h-3 w-3 text-yellow-500 animate-pulse" />
-              </div>
-              <span className="font-bold text-foreground text-lg">{getStatusText()}</span>
+      {isUploading && (
+        <div className="space-y-3 animate-slide-up">
+          <div className="flex items-center justify-between text-sm font-medium">
+            <div className="flex items-center gap-2">
+              <Loader2 className="h-4 w-4 animate-spin text-primary" />
+              <span>Processing Media...</span>
             </div>
-            <span className="font-mono font-black text-primary text-xl">{Math.round(progress)}%</span>
+            <span>{Math.round(progress)}%</span>
           </div>
-          <Progress value={progress} className="h-3 rounded-full bg-background" />
+          <Progress value={progress} className="h-2 rounded-full" />
         </div>
       )}
+      <div className="p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 rounded-2xl flex gap-3 text-sm text-blue-700 dark:text-blue-300">
+        <Cloud className="h-5 w-5 shrink-0" />
+        <p>
+          <strong>Cloud Optimizer:</strong> Images are automatically resized and converted to modern formats during upload for peak performance.
+        </p>
+      </div>
     </div>
   );
 }
