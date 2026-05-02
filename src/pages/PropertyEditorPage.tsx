@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useForm, Control } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -113,14 +113,14 @@ export function PropertyEditorPage() {
   });
   const form = useForm<PropertyFormValues>({
     resolver: zodResolver(propertySchema) as any,
-    defaultValues: { 
-      ref: '', kref: '', title: '', ptype: 'Villa', province: '', town: '', location: '', area: '', price: 0, originalprice: 0, frequency: 'Sale', beds: 0, baths: 0, living: 0, plot: 0, display: true, salestage: 0, description: '', moredetails: '', DE: '', FR: '', NL: '', rental: false, finca: false, penthouse: false, luxury: false, offplan: false, leasehold: false, golf: false, beach: false, aircon: false, pool: false, fireplace: false, heating: false, solarium: false, balconies: false, furnished: false, kitchen: false, utility: false, topsix: false, kyeroPrime: false, notrain: false 
+    defaultValues: {
+      ref: '', kref: '', title: '', ptype: 'Villa', province: '', town: '', location: '', area: '', price: 0, originalprice: 0, frequency: 'Sale', beds: 0, baths: 0, living: 0, plot: 0, display: true, salestage: 0, description: '', moredetails: '', DE: '', FR: '', NL: '', rental: false, finca: false, penthouse: false, luxury: false, offplan: false, leasehold: false, golf: false, beach: false, aircon: false, pool: false, fireplace: false, heating: false, solarium: false, balconies: false, furnished: false, kitchen: false, utility: false, topsix: false, kyeroPrime: false, notrain: false
     },
   });
   const typedControl = form.control as unknown as Control<PropertyFormValues>;
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => {
+  // Stable reset callback to prevent infinite loops
+  const resetForm = useCallback(() => {
     if (property) {
       form.reset({
         ...property,
@@ -131,7 +131,11 @@ export function PropertyEditorPage() {
         NL: property.NL || '',
       } as any);
     }
-  }, [property]);
+  }, [form, property]);
+
+  useEffect(() => {
+    resetForm();
+  }, [resetForm]);
   const mutation = useMutation({
     mutationFn: (values: PropertyFormValues) => {
       const method = isEditing ? 'PATCH' : 'POST';
