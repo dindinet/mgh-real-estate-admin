@@ -29,15 +29,20 @@ export function UploadZone({ propertyRef, onUploadComplete }: UploadZoneProps) {
       };
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
+        // Only compress images, pass ZIPs directly
         if (file.type.startsWith('image/')) {
           try {
             const compressedFile = await imageCompression(file, compressionOptions);
             optimizedFiles.push(new File([compressedFile], file.name, { type: file.type }));
           } catch (e) {
+            console.warn(`Compression failed for ${file.name}, using original`, e);
             optimizedFiles.push(file);
           }
+        } else {
+          optimizedFiles.push(file);
         }
-        setProgress(10 + ((i + 1) / files.length) * 40);
+        // Progress for optimization capped at 50%
+        setProgress(5 + ((i + 1) / files.length) * 45);
       }
       // 2. Real Upload Phase (API Call)
       setState('uploading');
@@ -105,7 +110,7 @@ export function UploadZone({ propertyRef, onUploadComplete }: UploadZoneProps) {
               {isDragActive ? "Release to Sync" : "Cloud Import"}
             </p>
             <p className="text-muted-foreground max-w-[280px] mx-auto text-sm leading-relaxed">
-              Drag images here for automated processing and persistent storage in the MGH database.
+              Drag images or a .ZIP archive here for automated processing and storage.
             </p>
           </div>
         </div>
