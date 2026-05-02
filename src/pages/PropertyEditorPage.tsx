@@ -96,6 +96,7 @@ const propertySchema = z.object({
   utility: z.boolean().default(false),
   topsix: z.boolean().default(false),
   kyeroPrime: z.boolean().default(false),
+  notrain: z.boolean().default(false),
 });
 type PropertyFormValues = z.infer<typeof propertySchema>;
 const PROPERTY_TYPES = ["Villa", "Apartment", "Townhouse", "Penthouse", "Finca", "Plot", "Commercial"];
@@ -112,9 +113,13 @@ export function PropertyEditorPage() {
   });
   const form = useForm<PropertyFormValues>({
     resolver: zodResolver(propertySchema) as any,
-    defaultValues: { ref: '', title: '', ptype: 'Villa', display: true, salestage: 0, price: 0, originalprice: 0 },
+    defaultValues: { 
+      ref: '', kref: '', title: '', ptype: 'Villa', province: '', town: '', location: '', area: '', price: 0, originalprice: 0, frequency: 'Sale', beds: 0, baths: 0, living: 0, plot: 0, display: true, salestage: 0, description: '', moredetails: '', DE: '', FR: '', NL: '', rental: false, finca: false, penthouse: false, luxury: false, offplan: false, leasehold: false, golf: false, beach: false, aircon: false, pool: false, fireplace: false, heating: false, solarium: false, balconies: false, furnished: false, kitchen: false, utility: false, topsix: false, kyeroPrime: false, notrain: false 
+    },
   });
   const typedControl = form.control as unknown as Control<PropertyFormValues>;
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (property) {
       form.reset({
@@ -126,7 +131,7 @@ export function PropertyEditorPage() {
         NL: property.NL || '',
       } as any);
     }
-  }, [property, form]);
+  }, [property]);
   const mutation = useMutation({
     mutationFn: (values: PropertyFormValues) => {
       const method = isEditing ? 'PATCH' : 'POST';
@@ -209,7 +214,7 @@ export function PropertyEditorPage() {
         </div>
         <div className="flex gap-3">
           <Button variant="outline" className="h-12 px-6 rounded-xl font-bold" onClick={() => navigate('/properties')}>Cancel</Button>
-          <Button onClick={form.handleSubmit(v => mutation.mutate(v))} className="h-12 px-8 btn-gradient rounded-xl font-bold shadow-xl" disabled={mutation.isPending}>
+          <Button onClick={form.handleSubmit((data: PropertyFormValues) => mutation.mutate(data))} className="h-12 px-8 btn-gradient rounded-xl font-bold shadow-xl" disabled={mutation.isPending}>
             {mutation.isPending ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <Save className="mr-2 h-5 w-5" />}
             {isEditing ? 'Update Entry' : 'Publish to Portal'}
           </Button>
@@ -248,7 +253,7 @@ export function PropertyEditorPage() {
                   <FormField control={typedControl} name="ptype" render={({ field }) => (
                     <FormItem>
                       <FormLabel className="text-xs font-black uppercase tracking-widest">Property Type</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <Select onValueChange={field.onChange} value={field.value || ''}>
                         <FormControl><SelectTrigger className="h-11 rounded-xl"><SelectValue /></SelectTrigger></FormControl>
                         <SelectContent>{PROPERTY_TYPES.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
                       </Select>
@@ -267,6 +272,13 @@ export function PropertyEditorPage() {
                     </FormItem>
                   )} />
                 </div>
+                <FormField control={typedControl} name="location" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-xs font-black uppercase tracking-widest">Location Details</FormLabel>
+                    <FormControl><Input {...field} className="h-12 rounded-xl" /></FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )} />
               </CardContent>
             </Card>
             {/* SPECIFICATIONS */}
@@ -375,7 +387,7 @@ export function PropertyEditorPage() {
                 <FormField control={typedControl} name="salestage" render={({ field }) => (
                   <FormItem>
                     <FormLabel className="text-xs font-bold opacity-80">SALES VELOCITY</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value.toString()}>
+                    <Select onValueChange={field.onChange} value={String(field.value || 0)}>
                       <FormControl><SelectTrigger className="h-12 rounded-2xl bg-white/10 border-white/20 font-black"><SelectValue /></SelectTrigger></FormControl>
                       <SelectContent><SelectItem value="0">FOR SALE</SelectItem><SelectItem value="1">RESERVED</SelectItem><SelectItem value="2">SOLD</SelectItem></SelectContent>
                     </Select>
