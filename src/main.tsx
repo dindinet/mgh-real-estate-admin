@@ -5,8 +5,7 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import {
   createBrowserRouter,
-  RouterProvider,
-  Navigate
+  RouterProvider
 } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
@@ -14,14 +13,10 @@ import { RouteErrorBoundary } from '@/components/RouteErrorBoundary';
 import '@/index.css'
 import { HomePage } from '@/pages/HomePage'
 import { PropertiesPage } from '@/pages/PropertiesPage'
+import { PropertyEditorPage } from '@/pages/PropertyEditorPage'
 import { AdminLayout } from '@/components/layout/AdminLayout'
-import { useAuthStore } from '@/stores/auth-store'
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
 const queryClient = new QueryClient();
-function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const isAuthenticated = useAuthStore(s => s.isAuthenticated);
-  if (!isAuthenticated) return <Navigate to="/" replace />;
-  return <>{children}</>;
-}
 const router = createBrowserRouter([
   {
     path: "/",
@@ -34,6 +29,28 @@ const router = createBrowserRouter([
       <ProtectedRoute>
         <AdminLayout>
           <PropertiesPage />
+        </AdminLayout>
+      </ProtectedRoute>
+    ),
+    errorElement: <RouteErrorBoundary />,
+  },
+  {
+    path: "/properties/new",
+    element: (
+      <ProtectedRoute>
+        <AdminLayout>
+          <PropertyEditorPage />
+        </AdminLayout>
+      </ProtectedRoute>
+    ),
+    errorElement: <RouteErrorBoundary />,
+  },
+  {
+    path: "/properties/:ref/edit",
+    element: (
+      <ProtectedRoute>
+        <AdminLayout>
+          <PropertyEditorPage />
         </AdminLayout>
       </ProtectedRoute>
     ),

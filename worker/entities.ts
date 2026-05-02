@@ -42,8 +42,10 @@ export class PropertyEntity extends IndexedEntity<Property> {
     lastEdited: 0
   };
   static seedData = MOCK_PROPERTIES;
-  static override keyOf(state: Property): string {
-    return state.ref; // Use reference as the primary lookup ID
+  static override keyOf<U extends { id: string }>(state: U): string {
+    // We use 'ref' as the indexing key for properties
+    const s = state as unknown as Property;
+    return s.ref || s.id;
   }
   async updateImages(images: string[]): Promise<void> {
     await this.patch({ images, lastEdited: Date.now() });
