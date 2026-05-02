@@ -33,15 +33,17 @@ import { useAuthStore } from "@/stores/auth-store";
 import { Link, useLocation } from "react-router-dom";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 export function AdminLayout({ children }: { children: React.ReactNode }) {
-  const logout = useAuthStore(state => state.logout);
-  const user = useAuthStore(state => state.user);
+  const logout = useAuthStore((state) => state.logout);
+  const userName = useAuthStore((state) => state.user?.name);
+  const userEmail = useAuthStore((state) => state.user?.email);
   const location = useLocation();
   const menuItems = [
     { icon: Home, label: "Dashboard", path: "/properties" },
     { icon: Building2, label: "Portfolio", path: "/properties" },
     { icon: Settings, label: "Settings", path: "/settings", muted: true },
   ];
-  const getInitials = (name: string) => {
+  const getInitials = (name: string | undefined) => {
+    if (!name) return "AD";
     return name.split(' ').map(n => n[0]).join('').toUpperCase();
   };
   return (
@@ -82,7 +84,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
           </SidebarContent>
           <SidebarFooter className="p-6 border-t border-white/5 bg-black/10">
             <button
-              onClick={logout}
+              onClick={() => logout()}
               className="flex items-center gap-4 px-4 py-3 w-full text-sm font-bold text-muted-foreground hover:text-white hover:bg-rose-500/10 rounded-xl transition-all group"
             >
               <LogOut className="h-5 w-5 group-hover:-translate-x-1 transition-transform" />
@@ -113,12 +115,12 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
                 <DropdownMenuTrigger className="focus:outline-none group">
                   <div className="flex items-center gap-4 p-1 rounded-2xl hover:bg-muted transition-all">
                     <div className="hidden md:flex flex-col items-end pr-1">
-                      <span className="text-sm font-black tracking-tight">{user?.name}</span>
+                      <span className="text-sm font-black tracking-tight">{userName || 'Admin'}</span>
                       <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Administrator</span>
                     </div>
                     <Avatar className="h-10 w-10 rounded-xl border-2 border-primary/20 group-hover:border-primary/50 transition-all shadow-lg">
                       <AvatarFallback className="bg-primary text-primary-foreground font-black rounded-xl">
-                        {user ? getInitials(user.name) : <User className="h-4 w-4" />}
+                        {userName ? getInitials(userName) : <User className="h-4 w-4" />}
                       </AvatarFallback>
                     </Avatar>
                   </div>
@@ -127,17 +129,17 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
                   <DropdownMenuLabel className="p-4">
                     <div className="flex flex-col gap-1">
                       <div className="flex items-center gap-2">
-                        <span className="font-black text-lg leading-tight">{user?.name}</span>
+                        <span className="font-black text-lg leading-tight">{userName || 'Admin User'}</span>
                         <Sparkles className="h-3 w-3 text-amber-500" />
                       </div>
-                      <span className="text-xs font-medium text-muted-foreground">{user?.email}</span>
+                      <span className="text-xs font-medium text-muted-foreground">{userEmail || 'admin@maxgoldhouse.com'}</span>
                     </div>
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator className="mx-2" />
                   <DropdownMenuItem className="p-3 rounded-xl cursor-pointer font-bold">Account Intelligence</DropdownMenuItem>
                   <DropdownMenuItem className="p-3 rounded-xl cursor-pointer font-bold">Security Preferences</DropdownMenuItem>
                   <DropdownMenuSeparator className="mx-2" />
-                  <DropdownMenuItem onClick={logout} className="p-3 rounded-xl cursor-pointer text-destructive focus:bg-destructive/10 focus:text-destructive font-black">
+                  <DropdownMenuItem onClick={() => logout()} className="p-3 rounded-xl cursor-pointer text-destructive focus:bg-destructive/10 focus:text-destructive font-black">
                     Terminate Session
                   </DropdownMenuItem>
                 </DropdownMenuContent>

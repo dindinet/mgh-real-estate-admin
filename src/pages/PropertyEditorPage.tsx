@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useForm, Control } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -24,7 +24,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Form,
   FormControl,
@@ -174,14 +174,7 @@ export function PropertyEditorPage() {
     },
     onError: (error) => toast.error(error instanceof Error ? error.message : 'Save failed'),
   });
-  if (isEditing && isLoadingProperty) {
-    return (
-      <div className="flex items-center justify-center h-96">
-        <Loader2 className="h-12 w-12 animate-spin text-primary" />
-      </div>
-    );
-  }
-  const features = [
+  const features = useMemo(() => [
     { name: 'rental', label: 'Rental Potential', icon: CircleDollarSign },
     { name: 'luxury', label: 'Luxury Listing', icon: ImageIcon },
     { name: 'pool', label: 'Swimming Pool', icon: Waves },
@@ -200,7 +193,14 @@ export function PropertyEditorPage() {
     { name: 'fireplace', label: 'Fireplace', icon: Wind },
     { name: 'topsix', label: 'Top Six Selection', icon: CheckCircle2 },
     { name: 'kyeroPrime', label: 'Kyero Prime', icon: CheckCircle2 },
-  ];
+  ], []);
+  if (isEditing && isLoadingProperty) {
+    return (
+      <div className="flex items-center justify-center h-96">
+        <Loader2 className="h-12 w-12 animate-spin text-primary" />
+      </div>
+    );
+  }
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div className="py-8 md:py-10 lg:py-12 space-y-10 animate-fade-in">
@@ -220,9 +220,9 @@ export function PropertyEditorPage() {
           </div>
           <div className="flex gap-4">
              <Button type="button" variant="outline" className="h-12 px-6 rounded-xl font-bold" onClick={() => navigate('/properties')}>Cancel</Button>
-             <Button 
+             <Button
                 onClick={form.handleSubmit((values) => mutation.mutate(values))}
-                className="h-12 px-8 btn-gradient rounded-xl font-bold shadow-xl min-w-[160px]" 
+                className="h-12 px-8 btn-gradient rounded-xl font-bold shadow-xl min-w-[160px]"
                 disabled={mutation.isPending}
              >
                 {mutation.isPending ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <Save className="mr-2 h-5 w-5" />}
@@ -234,7 +234,6 @@ export function PropertyEditorPage() {
           <form className="space-y-10">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
               <div className="lg:col-span-2 space-y-10">
-                {/* 1. Core Information */}
                 <Card className="border-border/50 shadow-soft overflow-hidden rounded-3xl">
                   <CardHeader className="bg-muted/30 border-b">
                     <div className="flex items-center gap-2 text-primary">
@@ -337,22 +336,8 @@ export function PropertyEditorPage() {
                         )}
                       />
                     </div>
-                    <FormField
-                      control={typedControl}
-                      name="location"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Exact Area / Location Description</FormLabel>
-                          <FormControl>
-                            <Input placeholder="e.g. Near Cabo de la Nao" {...field} className="h-12 rounded-xl" />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
                   </CardContent>
                 </Card>
-                {/* 2. Localization & Content */}
                 <Card className="border-border/50 shadow-soft overflow-hidden rounded-3xl">
                   <CardHeader className="bg-muted/30 border-b">
                     <div className="flex items-center gap-2 text-primary">
@@ -362,22 +347,20 @@ export function PropertyEditorPage() {
                   </CardHeader>
                   <CardContent className="p-8">
                     <Tabs defaultValue="EN" className="space-y-6">
-                      <TabsList className="bg-muted p-1 rounded-xl w-full sm:w-auto h-auto grid grid-cols-4 sm:flex sm:flex-row">
-                        <TabsTrigger value="EN" className="rounded-lg py-2 px-6 font-bold">English</TabsTrigger>
-                        <TabsTrigger value="DE" className="rounded-lg py-2 px-6 font-bold">Deutsch</TabsTrigger>
-                        <TabsTrigger value="FR" className="rounded-lg py-2 px-6 font-bold">Français</TabsTrigger>
-                        <TabsTrigger value="NL" className="rounded-lg py-2 px-6 font-bold">Nederlands</TabsTrigger>
+                      <TabsList className="bg-muted p-1 rounded-xl h-auto grid grid-cols-4">
+                        <TabsTrigger value="EN" className="rounded-lg py-2 font-bold">EN</TabsTrigger>
+                        <TabsTrigger value="DE" className="rounded-lg py-2 font-bold">DE</TabsTrigger>
+                        <TabsTrigger value="FR" className="rounded-lg py-2 font-bold">FR</TabsTrigger>
+                        <TabsTrigger value="NL" className="rounded-lg py-2 font-bold">NL</TabsTrigger>
                       </TabsList>
-                      <TabsContent value="EN" className="space-y-6">
+                      <TabsContent value="EN">
                         <FormField
                           control={typedControl}
                           name="description"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel className="font-bold">Primary Description (English)</FormLabel>
-                              <FormControl>
-                                <Textarea {...field} className="min-h-[200px] rounded-2xl resize-none leading-relaxed" placeholder="Write a compelling story for the English market..." />
-                              </FormControl>
+                              <FormLabel className="font-bold">English Description</FormLabel>
+                              <FormControl><Textarea {...field} className="min-h-[200px] rounded-2xl resize-none" /></FormControl>
                               <FormMessage />
                             </FormItem>
                           )}
@@ -390,9 +373,7 @@ export function PropertyEditorPage() {
                           render={({ field }) => (
                             <FormItem>
                               <FormLabel className="font-bold">German Description</FormLabel>
-                              <FormControl>
-                                <Textarea {...field} className="min-h-[200px] rounded-2xl resize-none" placeholder="Deutsche Beschreibung hier eingeben..." />
-                              </FormControl>
+                              <FormControl><Textarea {...field} className="min-h-[200px] rounded-2xl resize-none" /></FormControl>
                               <FormMessage />
                             </FormItem>
                           )}
@@ -405,9 +386,7 @@ export function PropertyEditorPage() {
                           render={({ field }) => (
                             <FormItem>
                               <FormLabel className="font-bold">French Description</FormLabel>
-                              <FormControl>
-                                <Textarea {...field} className="min-h-[200px] rounded-2xl resize-none" placeholder="Saisissez la description en français ici..." />
-                              </FormControl>
+                              <FormControl><Textarea {...field} className="min-h-[200px] rounded-2xl resize-none" /></FormControl>
                               <FormMessage />
                             </FormItem>
                           )}
@@ -420,9 +399,7 @@ export function PropertyEditorPage() {
                           render={({ field }) => (
                             <FormItem>
                               <FormLabel className="font-bold">Dutch Description</FormLabel>
-                              <FormControl>
-                                <Textarea {...field} className="min-h-[200px] rounded-2xl resize-none" placeholder="Voer hier de Nederlandse beschrijving in..." />
-                              </FormControl>
+                              <FormControl><Textarea {...field} className="min-h-[200px] rounded-2xl resize-none" /></FormControl>
                               <FormMessage />
                             </FormItem>
                           )}
@@ -431,7 +408,6 @@ export function PropertyEditorPage() {
                     </Tabs>
                   </CardContent>
                 </Card>
-                {/* 3. Features Grid */}
                 <Card className="border-border/50 shadow-soft overflow-hidden rounded-3xl">
                   <CardHeader className="bg-muted/30 border-b">
                     <div className="flex items-center gap-2 text-primary">
@@ -440,20 +416,20 @@ export function PropertyEditorPage() {
                     </div>
                   </CardHeader>
                   <CardContent className="p-8">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-x-10 gap-y-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-x-6 gap-y-4">
                       {features.map((feature) => (
                         <FormField
                           key={feature.name}
                           control={typedControl}
                           name={feature.name as any}
                           render={({ field }) => (
-                            <FormItem className="flex flex-row items-center justify-between space-y-0 bg-muted/20 p-4 rounded-2xl border border-transparent hover:border-primary/20 transition-all">
+                            <FormItem className="flex items-center justify-between space-y-0 bg-muted/20 p-4 rounded-2xl border border-transparent hover:border-primary/20 transition-all">
                               <div className="flex items-center gap-3">
                                 <feature.icon className="h-4 w-4 text-primary/60" />
-                                <FormLabel className="text-sm font-semibold cursor-pointer">{feature.label}</FormLabel>
+                                <FormLabel className="text-xs font-semibold cursor-pointer">{feature.label}</FormLabel>
                               </div>
                               <FormControl>
-                                <Switch checked={field.value} onCheckedChange={field.onChange} />
+                                <Switch checked={!!field.value} onCheckedChange={field.onChange} />
                               </FormControl>
                             </FormItem>
                           )}
@@ -464,7 +440,6 @@ export function PropertyEditorPage() {
                 </Card>
               </div>
               <div className="space-y-10">
-                {/* 4. Financials */}
                 <Card className="border-border/50 shadow-soft rounded-3xl overflow-hidden">
                   <CardHeader className="bg-muted/30 border-b">
                     <div className="flex items-center gap-2 text-primary">
@@ -478,24 +453,8 @@ export function PropertyEditorPage() {
                       name="price"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="font-bold text-xs uppercase text-muted-foreground">Current Listing Price ($)</FormLabel>
-                          <FormControl>
-                            <Input type="number" {...field} className="h-12 rounded-xl font-bold text-2xl text-primary border-2 border-primary/20" />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={typedControl}
-                      name="originalprice"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="font-bold text-xs uppercase text-muted-foreground">Market Comparison Price ($)</FormLabel>
-                          <FormControl>
-                            <Input type="number" {...field} className="h-10 rounded-xl" />
-                          </FormControl>
-                          <FormDescription>Shows a "was" price if higher than current price</FormDescription>
+                          <FormLabel className="font-bold text-xs uppercase text-muted-foreground">Listing Price ($)</FormLabel>
+                          <FormControl><Input type="number" {...field} className="h-12 rounded-xl font-bold text-xl text-primary border-2 border-primary/20" /></FormControl>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -507,11 +466,7 @@ export function PropertyEditorPage() {
                         <FormItem>
                           <FormLabel className="font-bold text-xs uppercase text-muted-foreground">Global Sales Stage</FormLabel>
                           <Select onValueChange={field.onChange} value={field.value.toString()}>
-                            <FormControl>
-                              <SelectTrigger className="h-12 rounded-xl">
-                                <SelectValue placeholder="Select status" />
-                              </SelectTrigger>
-                            </FormControl>
+                            <FormControl><SelectTrigger className="h-11 rounded-xl"><SelectValue /></SelectTrigger></FormControl>
                             <SelectContent>
                               <SelectItem value="0">For Sale</SelectItem>
                               <SelectItem value="1">Reserved</SelectItem>
@@ -521,40 +476,24 @@ export function PropertyEditorPage() {
                         </FormItem>
                       )}
                     />
-                    <FormField
-                      control={typedControl}
-                      name="display"
-                      render={({ field }) => (
-                        <FormItem className="flex items-center justify-between p-4 bg-primary/5 rounded-2xl border-2 border-dashed border-primary/20">
-                          <div className="space-y-0.5">
-                            <FormLabel className="font-bold">Public Portal</FormLabel>
-                            <FormDescription className="text-[10px]">Show on public website</FormDescription>
-                          </div>
-                          <FormControl>
-                            <Switch checked={field.value} onCheckedChange={field.onChange} />
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
                   </CardContent>
                 </Card>
-                {/* 5. Specifications */}
                 <Card className="border-border/50 shadow-soft rounded-3xl overflow-hidden">
-                   <CardHeader className="bg-muted/30 border-b">
+                  <CardHeader className="bg-muted/30 border-b">
                     <div className="flex items-center gap-2 text-primary">
                       <Maximize className="h-5 w-5" />
                       <CardTitle className="text-lg">Specifications</CardTitle>
                     </div>
                   </CardHeader>
                   <CardContent className="p-6">
-                    <div className="grid grid-cols-2 gap-6">
+                    <div className="grid grid-cols-2 gap-4">
                       <FormField
                         control={typedControl}
                         name="beds"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel className="font-bold text-[10px] uppercase text-muted-foreground">Bedrooms</FormLabel>
-                            <FormControl><Input type="number" {...field} className="h-11 rounded-xl" /></FormControl>
+                            <FormLabel className="font-bold text-[10px] uppercase text-muted-foreground">Beds</FormLabel>
+                            <FormControl><Input type="number" {...field} className="h-10 rounded-xl" /></FormControl>
                           </FormItem>
                         )}
                       />
@@ -563,35 +502,14 @@ export function PropertyEditorPage() {
                         name="baths"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel className="font-bold text-[10px] uppercase text-muted-foreground">Bathrooms</FormLabel>
-                            <FormControl><Input type="number" {...field} className="h-11 rounded-xl" /></FormControl>
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={typedControl}
-                        name="living"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="font-bold text-[10px] uppercase text-muted-foreground">Living Sqm</FormLabel>
-                            <FormControl><Input type="number" {...field} className="h-11 rounded-xl" /></FormControl>
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={typedControl}
-                        name="plot"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="font-bold text-[10px] uppercase text-muted-foreground">Plot Sqm</FormLabel>
-                            <FormControl><Input type="number" {...field} className="h-11 rounded-xl" /></FormControl>
+                            <FormLabel className="font-bold text-[10px] uppercase text-muted-foreground">Baths</FormLabel>
+                            <FormControl><Input type="number" {...field} className="h-10 rounded-xl" /></FormControl>
                           </FormItem>
                         )}
                       />
                     </div>
                   </CardContent>
                 </Card>
-                {/* 6. Media Manager Hook */}
                 <Card className={cn("border-border/50 shadow-soft rounded-3xl overflow-hidden", isEditing ? "bg-card" : "bg-muted/10")}>
                   <CardHeader>
                     <div className="flex items-center gap-2 text-primary font-semibold">
@@ -599,26 +517,14 @@ export function PropertyEditorPage() {
                       <CardTitle className="text-lg">Media Gallery</CardTitle>
                     </div>
                   </CardHeader>
-                  <CardContent className="text-center py-6 px-4 space-y-4">
+                  <CardContent className="text-center py-4 px-4">
                     {isEditing ? (
-                      <>
-                        <div className="aspect-video rounded-2xl bg-muted/50 overflow-hidden border-2 border-dashed relative group">
-                          {existingProperty?.images?.[0] ? (
-                            <img src={existingProperty.images[0]} className="w-full h-full object-cover transition-transform group-hover:scale-105" />
-                          ) : (
-                            <div className="w-full h-full flex flex-col items-center justify-center opacity-20"><ImageIcon className="h-10 w-10" /></div>
-                          )}
-                          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity cursor-pointer" onClick={() => setIsImageManagerOpen(true)}>
-                            <p className="text-white font-bold">Manage {existingProperty?.images?.length || 0} Assets</p>
-                          </div>
-                        </div>
-                        <Button variant="outline" className="w-full h-12 rounded-xl font-bold border-2" type="button" onClick={() => setIsImageManagerOpen(true)}>
-                          Manage Media Assets
-                        </Button>
-                      </>
+                      <Button variant="outline" className="w-full h-12 rounded-xl font-bold border-2" type="button" onClick={() => setIsImageManagerOpen(true)}>
+                        Manage Media Assets ({existingProperty?.images?.length || 0})
+                      </Button>
                     ) : (
-                      <div className="bg-muted/20 p-6 rounded-2xl text-sm font-medium text-muted-foreground border-2 border-dashed">
-                        Publish basic details to activate the media suite.
+                      <div className="bg-muted/20 p-4 rounded-xl text-xs font-medium text-muted-foreground">
+                        Publish first to activate media uploads.
                       </div>
                     )}
                   </CardContent>
