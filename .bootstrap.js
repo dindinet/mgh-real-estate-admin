@@ -83,7 +83,7 @@ function runSetupCommands() {
     "bun add browser-image-compression@^2.0.2",
     "bun add @dnd-kit/utilities@^3.2.0",
     "bun add @dnd-kit/core @dnd-kit/sortable @dnd-kit/utilities react-dropzone jszip browser-image-compression",
-    "bun add jszip browser-image-compression @dnd-kit/utilities"
+    "bun add jszip"
 ];
     
     if (commands.length === 0) {
