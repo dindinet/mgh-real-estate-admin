@@ -25,7 +25,7 @@ export interface Property {
   kref: string; // External/Legacy Reference
   // Basic Details
   title: string;
-  ptype: string; // Villa, Apartment, etc.
+  ptype: string; // Villa, Apartment, Townhouse, etc.
   province: string;
   town: string;
   location: string;
@@ -33,7 +33,7 @@ export interface Property {
   // Pricing
   price: number;
   originalprice: number;
-  frequency: string; // Monthly, Weekly (for rentals)
+  frequency: string; // Sale, Monthly, Weekly
   // Specifications
   beds: number;
   baths: number;
@@ -46,7 +46,7 @@ export interface Property {
   // Status Flags
   display: boolean;
   salestage: number; // 0: For Sale, 1: Reserved, 2: Sold
-  // Feature Flags
+  // Feature Flags Matrix (MGHPROPS Schema)
   rental: boolean;
   finca: boolean;
   penthouse: boolean;
@@ -71,8 +71,8 @@ export interface Property {
   DE: string;
   FR: string;
   NL: string;
-  // Timestamps (Stored as ISO Strings)
+  // Timestamps (ISO Strings)
   created: string;
-  kdate: string; // Alternative date field
+  kdate: string;
   lastEdited: string;
 }

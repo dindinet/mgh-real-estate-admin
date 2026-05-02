@@ -10,7 +10,6 @@ import {
   ChevronLeft,
   Save,
   Loader2,
-  CircleDollarSign,
   Info,
   Image as ImageIcon,
   LayoutGrid,
@@ -27,14 +26,14 @@ import {
   Bath,
   Maximize2,
   Palmtree,
-  Wifi,
   Utensils,
   Sun,
   Flame,
   Snowflake,
   Lock,
   Globe,
-  Sparkles
+  Sparkles,
+  AlertTriangle
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -118,8 +117,6 @@ export function PropertyEditorPage() {
     },
   });
   const typedControl = form.control as unknown as Control<PropertyFormValues>;
-
-  // Stable reset callback to prevent infinite loops
   const resetForm = useCallback(() => {
     if (property) {
       form.reset({
@@ -132,7 +129,6 @@ export function PropertyEditorPage() {
       } as any);
     }
   }, [form, property]);
-
   useEffect(() => {
     resetForm();
   }, [resetForm]);
@@ -140,193 +136,158 @@ export function PropertyEditorPage() {
     mutationFn: (values: PropertyFormValues) => {
       const method = isEditing ? 'PATCH' : 'POST';
       const endpoint = isEditing ? `/api/properties/${ref}` : '/api/properties';
-      return api<Property>(endpoint, {
-        method,
-        body: JSON.stringify(values),
-      });
+      return api<Property>(endpoint, { method, body: JSON.stringify(values) });
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['properties'] });
-      toast.success(isEditing ? 'Portfolio record updated' : 'Property successfully listed');
+      toast.success(isEditing ? 'Database entry synchronized' : 'New property published');
       if (!isEditing) navigate(`/properties/${data.ref}/edit`);
     },
-    onError: (e) => toast.error(e instanceof Error ? e.message : 'Operation failed'),
+    onError: (e) => toast.error(e instanceof Error ? e.message : 'Record update failed'),
   });
   const featureGroups = useMemo(() => [
-    {
-      label: "General Features",
-      items: [
-        { name: 'luxury', label: 'Luxury', icon: Sparkles },
-        { name: 'topsix', label: 'Top 6', icon: CheckCircle2 },
-        { name: 'kyeroPrime', label: 'Kyero Prime', icon: Globe },
-        { name: 'offplan', label: 'Off-Plan', icon: Clock },
-      ]
-    },
-    {
-      label: "Property Specs",
-      items: [
-        { name: 'pool', label: 'Pool', icon: Waves },
-        { name: 'beach', label: 'Beachfront', icon: Palmtree },
-        { name: 'golf', label: 'Golf Front', icon: Sun },
-        { name: 'finca', label: 'Finca/Rustic', icon: Home },
-      ]
-    },
-    {
-      label: "Comfort & Utilities",
-      items: [
-        { name: 'aircon', label: 'Aircon', icon: Snowflake },
-        { name: 'heating', label: 'Heating', icon: Wind },
-        { name: 'fireplace', label: 'Fireplace', icon: Flame },
-        { name: 'furnished', label: 'Furnished', icon: Lock },
-      ]
-    },
-    {
-      label: "Internal Areas",
-      items: [
-        { name: 'kitchen', label: 'Equipped Kitchen', icon: Utensils },
-        { name: 'utility', label: 'Utility Room', icon: Wind },
-        { name: 'solarium', label: 'Solarium', icon: Sun },
-        { name: 'balconies', label: 'Balconies', icon: Home },
-      ]
-    }
+    { label: "Elite Class", items: [{ name: 'luxury', label: 'Luxury', icon: Sparkles }, { name: 'topsix', label: 'Top 6 Exclusive', icon: CheckCircle2 }, { name: 'kyeroPrime', label: 'Kyero Prime', icon: Globe }, { name: 'offplan', label: 'Off-Plan Development', icon: Clock }] },
+    { label: "Environment", items: [{ name: 'pool', label: 'Private Pool', icon: Waves }, { name: 'beach', label: 'Beachfront Access', icon: Palmtree }, { name: 'golf', label: 'Golf Frontline', icon: Sun }, { name: 'finca', label: 'Finca / Rustic Estate', icon: Home }] },
+    { label: "Internal Amenities", items: [{ name: 'aircon', label: 'Climate Control', icon: Snowflake }, { name: 'heating', label: 'Central Heating', icon: Wind }, { name: 'fireplace', label: 'Feature Fireplace', icon: Flame }, { name: 'furnished', label: 'Fully Furnished', icon: Lock }] },
+    { label: "Service Areas", items: [{ name: 'kitchen', label: 'Designer Kitchen', icon: Utensils }, { name: 'utility', label: 'Utility/Laundry', icon: Wind }, { name: 'solarium', label: 'Private Solarium', icon: Sun }, { name: 'balconies', label: 'Multiple Balconies', icon: Home }] }
   ], []);
   if (isEditing && isLoading) {
-    return <div className="flex h-96 items-center justify-center"><Loader2 className="h-12 w-12 animate-spin text-primary" /></div>;
+    return (
+      <div className="flex flex-col h-96 items-center justify-center gap-4">
+        <Loader2 className="h-12 w-12 animate-spin text-primary" />
+        <p className="text-muted-foreground font-black uppercase tracking-[0.2em] text-xs">Accessing MGH Cloud...</p>
+      </div>
+    );
   }
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-10 lg:py-12 space-y-10">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b pb-8">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={() => navigate('/properties')} className="rounded-full h-12 w-12 hover:bg-muted">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-10 lg:py-12 space-y-12">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div className="flex items-center gap-6">
+          <Button variant="outline" size="icon" onClick={() => navigate('/properties')} className="rounded-2xl h-14 w-14 shadow-sm">
             <ChevronLeft className="h-6 w-6" />
           </Button>
           <div>
-            <h1 className="text-4xl font-display font-bold tracking-tight text-foreground">
-              {isEditing ? property?.title : 'New Entry'}
+            <h1 className="text-5xl font-display font-black tracking-tight text-foreground leading-none">
+              {isEditing ? property?.title : 'New Portfolio Entry'}
             </h1>
-            <div className="flex items-center gap-4 mt-2">
-              <span className="text-xs font-black uppercase tracking-widest text-primary bg-primary/10 px-2 py-0.5 rounded-md">
-                REF: {isEditing ? ref : 'PENDING'}
-              </span>
-              {property?.created && (
-                <div className="flex items-center gap-1.5 text-xs text-muted-foreground font-medium">
-                  <Clock className="h-3 w-3" /> Published {format(new Date(property.created), 'MMM d, yyyy')}
+            <div className="flex items-center gap-4 mt-4">
+              <Badge variant="secondary" className="px-3 py-1 font-black text-[10px] tracking-widest uppercase">
+                REF: {isEditing ? ref : 'UNASSIGNED'}
+              </Badge>
+              {isEditing && (
+                <div className="flex items-center gap-2 text-[10px] font-black text-muted-foreground uppercase tracking-widest">
+                  <Clock className="h-3 w-3" /> Sync: {format(new Date(property?.lastEdited || Date.now()), 'HH:mm • dd/MM/yy')}
                 </div>
               )}
             </div>
           </div>
         </div>
-        <div className="flex gap-3">
-          <Button variant="outline" className="h-12 px-6 rounded-xl font-bold" onClick={() => navigate('/properties')}>Cancel</Button>
-          <Button onClick={form.handleSubmit((data: PropertyFormValues) => mutation.mutate(data))} className="h-12 px-8 btn-gradient rounded-xl font-bold shadow-xl" disabled={mutation.isPending}>
-            {mutation.isPending ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <Save className="mr-2 h-5 w-5" />}
-            {isEditing ? 'Update Entry' : 'Publish to Portal'}
+        <div className="flex gap-4">
+          <Button variant="ghost" className="h-14 px-8 rounded-2xl font-bold text-muted-foreground hover:text-foreground" onClick={() => navigate('/properties')}>Cancel</Button>
+          <Button 
+            onClick={form.handleSubmit((data) => mutation.mutate(data))} 
+            className="h-14 px-10 btn-gradient rounded-2xl font-black text-lg shadow-2xl" 
+            disabled={mutation.isPending}
+          >
+            {mutation.isPending ? <Loader2 className="mr-3 h-6 w-6 animate-spin" /> : <Save className="mr-3 h-6 w-6" />}
+            {isEditing ? 'Sync Changes' : 'Commit to Cloud'}
           </Button>
         </div>
       </div>
       <Form {...form}>
-        <form className="grid grid-cols-1 lg:grid-cols-3 gap-10">
-          <div className="lg:col-span-2 space-y-10">
-            {/* CORE INFORMATION */}
-            <Card className="rounded-[2rem] shadow-soft border-border/50">
-              <CardHeader className="bg-muted/10 border-b p-8"><CardTitle className="text-xl flex items-center gap-3"><Info className="h-5 w-5 text-primary" />Core Information</CardTitle></CardHeader>
-              <CardContent className="p-8 space-y-6">
-                <div className="grid grid-cols-2 gap-6">
+        <form className="grid grid-cols-1 lg:grid-cols-12 gap-12">
+          <div className="lg:col-span-8 space-y-12">
+            {/* CORE DATA */}
+            <Card className="rounded-[3rem] shadow-soft border-border/40 overflow-hidden">
+              <CardHeader className="bg-muted/20 border-b px-10 py-8">
+                <CardTitle className="text-2xl font-black flex items-center gap-4">
+                  <Info className="h-6 w-6 text-primary" /> Core Property Data
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-10 space-y-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                   <FormField control={typedControl} name="ref" render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-xs font-black uppercase tracking-widest">Global Reference</FormLabel>
-                      <FormControl><Input {...field} disabled={isEditing} className="h-12 rounded-xl bg-muted/20 font-black uppercase" /></FormControl>
+                      <FormLabel className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Unique Reference</FormLabel>
+                      <FormControl><Input {...field} disabled={isEditing} className="h-14 rounded-2xl bg-muted/30 font-black text-lg uppercase" /></FormControl>
                       <FormMessage />
                     </FormItem>
                   )} />
                   <FormField control={typedControl} name="kref" render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-xs font-black uppercase tracking-widest">Legacy ID</FormLabel>
-                      <FormControl><Input {...field} className="h-12 rounded-xl" /></FormControl>
+                      <FormLabel className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Legacy Database ID</FormLabel>
+                      <FormControl><Input {...field} className="h-14 rounded-2xl" /></FormControl>
                     </FormItem>
                   )} />
                 </div>
                 <FormField control={typedControl} name="title" render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-xs font-black uppercase tracking-widest">Public Title</FormLabel>
-                    <FormControl><Input {...field} className="h-12 rounded-xl font-bold text-lg" /></FormControl>
+                    <FormLabel className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Marketing Title</FormLabel>
+                    <FormControl><Input {...field} className="h-16 rounded-2xl font-bold text-xl" /></FormControl>
                     <FormMessage />
                   </FormItem>
                 )} />
-                <div className="grid grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                   <FormField control={typedControl} name="ptype" render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-xs font-black uppercase tracking-widest">Property Type</FormLabel>
+                      <FormLabel className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Type</FormLabel>
                       <Select onValueChange={field.onChange} value={field.value || ''}>
-                        <FormControl><SelectTrigger className="h-11 rounded-xl"><SelectValue /></SelectTrigger></FormControl>
+                        <FormControl><SelectTrigger className="h-14 rounded-2xl"><SelectValue /></SelectTrigger></FormControl>
                         <SelectContent>{PROPERTY_TYPES.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
                       </Select>
                     </FormItem>
                   )} />
                   <FormField control={typedControl} name="province" render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-xs font-black uppercase tracking-widest">Province</FormLabel>
-                      <FormControl><Input {...field} className="h-11 rounded-xl" /></FormControl>
-                    </FormItem>
+                    <FormItem><FormLabel className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Province</FormLabel><FormControl><Input {...field} className="h-14 rounded-2xl" /></FormControl></FormItem>
                   )} />
                   <FormField control={typedControl} name="town" render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-xs font-black uppercase tracking-widest">Town</FormLabel>
-                      <FormControl><Input {...field} className="h-11 rounded-xl" /></FormControl>
-                    </FormItem>
+                    <FormItem><FormLabel className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Town</FormLabel><FormControl><Input {...field} className="h-14 rounded-2xl" /></FormControl></FormItem>
                   )} />
                 </div>
-                <FormField control={typedControl} name="location" render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-xs font-black uppercase tracking-widest">Location Details</FormLabel>
-                    <FormControl><Input {...field} className="h-12 rounded-xl" /></FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )} />
               </CardContent>
             </Card>
-            {/* SPECIFICATIONS */}
-            <Card className="rounded-[2rem] shadow-soft border-border/50">
-              <CardHeader className="bg-muted/10 border-b p-8"><CardTitle className="text-xl flex items-center gap-3"><Maximize className="h-5 w-5 text-primary" />Specifications</CardTitle></CardHeader>
-              <CardContent className="p-8 grid grid-cols-2 md:grid-cols-4 gap-6">
+            {/* SPECS */}
+            <Card className="rounded-[3rem] shadow-soft border-border/40 overflow-hidden">
+              <CardHeader className="bg-muted/20 border-b px-10 py-8"><CardTitle className="text-2xl font-black flex items-center gap-4"><Maximize className="h-6 w-6 text-primary" />Technical Specifications</CardTitle></CardHeader>
+              <CardContent className="p-10 grid grid-cols-2 md:grid-cols-4 gap-8">
                 <FormField control={typedControl} name="beds" render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-[10px] font-black uppercase opacity-60">Bedrooms</FormLabel>
-                    <div className="relative"><Bed className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-primary" /><FormControl><Input type="number" {...field} className="pl-10 h-12 rounded-xl font-bold" /></FormControl></div>
+                    <FormLabel className="text-[10px] font-black uppercase tracking-[0.2em] opacity-60">Bedrooms</FormLabel>
+                    <div className="relative"><Bed className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-primary" /><FormControl><Input type="number" {...field} className="pl-12 h-14 rounded-2xl font-black text-lg" /></FormControl></div>
                   </FormItem>
                 )} />
                 <FormField control={typedControl} name="baths" render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-[10px] font-black uppercase opacity-60">Bathrooms</FormLabel>
-                    <div className="relative"><Bath className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-primary" /><FormControl><Input type="number" {...field} className="pl-10 h-12 rounded-xl font-bold" /></FormControl></div>
+                    <FormLabel className="text-[10px] font-black uppercase tracking-[0.2em] opacity-60">Bathrooms</FormLabel>
+                    <div className="relative"><Bath className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-primary" /><FormControl><Input type="number" {...field} className="pl-12 h-14 rounded-2xl font-black text-lg" /></FormControl></div>
                   </FormItem>
                 )} />
                 <FormField control={typedControl} name="living" render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-[10px] font-black uppercase opacity-60">Living Area (sqm)</FormLabel>
-                    <div className="relative"><Maximize2 className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-primary" /><FormControl><Input type="number" {...field} className="pl-10 h-12 rounded-xl font-bold" /></FormControl></div>
+                    <FormLabel className="text-[10px] font-black uppercase tracking-[0.2em] opacity-60">Living (m²)</FormLabel>
+                    <div className="relative"><Maximize2 className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-primary" /><FormControl><Input type="number" {...field} className="pl-12 h-14 rounded-2xl font-black text-lg" /></FormControl></div>
                   </FormItem>
                 )} />
                 <FormField control={typedControl} name="plot" render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-[10px] font-black uppercase opacity-60">Plot Size (sqm)</FormLabel>
-                    <div className="relative"><LayoutGrid className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-primary" /><FormControl><Input type="number" {...field} className="pl-10 h-12 rounded-xl font-bold" /></FormControl></div>
+                    <FormLabel className="text-[10px] font-black uppercase tracking-[0.2em] opacity-60">Plot (m²)</FormLabel>
+                    <div className="relative"><LayoutGrid className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-primary" /><FormControl><Input type="number" {...field} className="pl-12 h-14 rounded-2xl font-black text-lg" /></FormControl></div>
                   </FormItem>
                 )} />
               </CardContent>
             </Card>
-            {/* FEATURE GRID */}
-            <Card className="rounded-[2rem] shadow-soft border-border/50">
-              <CardHeader className="bg-muted/10 border-b p-8"><CardTitle className="text-xl flex items-center gap-3"><LayoutGrid className="h-5 w-5 text-primary" />Feature Matrix</CardTitle></CardHeader>
-              <CardContent className="p-8 space-y-10">
+            {/* FEATURE MATRIX */}
+            <Card className="rounded-[3rem] shadow-soft border-border/40 overflow-hidden">
+              <CardHeader className="bg-muted/20 border-b px-10 py-8"><CardTitle className="text-2xl font-black flex items-center gap-4"><LayoutGrid className="h-6 w-6 text-primary" />Feature Intelligence Matrix</CardTitle></CardHeader>
+              <CardContent className="p-10 space-y-12">
                 {featureGroups.map((group, idx) => (
-                  <div key={idx} className="space-y-4">
-                    <h3 className="text-xs font-black text-primary uppercase tracking-widest px-1">{group.label}</h3>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div key={idx} className="space-y-6">
+                    <h3 className="text-xs font-black text-primary uppercase tracking-[0.3em] pl-2">{group.label}</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
                       {group.items.map(f => (
                         <FormField key={f.name} control={typedControl} name={f.name as any} render={({ field }) => (
-                          <FormItem className="flex items-center justify-between p-4 bg-muted/20 rounded-2xl border hover:border-primary/20 transition-all cursor-pointer">
-                            <div className="flex items-center gap-2"><f.icon className="h-4 w-4 opacity-40 text-primary" /><span className="text-[10px] font-black uppercase tracking-wider">{f.label}</span></div>
+                          <FormItem className="flex items-center justify-between p-5 bg-muted/10 rounded-3xl border border-transparent hover:border-primary/20 transition-all cursor-pointer group">
+                            <div className="flex items-center gap-3"><f.icon className="h-5 w-5 opacity-40 text-primary group-hover:opacity-100 transition-opacity" /><span className="text-[10px] font-black uppercase tracking-wider">{f.label}</span></div>
                             <FormControl><Switch checked={!!field.value} onCheckedChange={field.onChange} /></FormControl>
                           </FormItem>
                         )} />
@@ -336,105 +297,107 @@ export function PropertyEditorPage() {
                 ))}
               </CardContent>
             </Card>
-            {/* LOCALIZATIONS */}
-            <Card className="rounded-[2rem] shadow-soft border-border/50">
-              <CardHeader className="bg-muted/10 border-b p-8"><CardTitle className="text-xl flex items-center gap-3"><Languages className="h-5 w-5 text-primary" />Global Descriptions</CardTitle></CardHeader>
-              <CardContent className="p-8">
+            {/* LOCALIZATION */}
+            <Card className="rounded-[3rem] shadow-soft border-border/40 overflow-hidden">
+              <CardHeader className="bg-muted/20 border-b px-10 py-8"><CardTitle className="text-2xl font-black flex items-center gap-4"><Languages className="h-6 w-6 text-primary" />Global Localization</CardTitle></CardHeader>
+              <CardContent className="p-10">
                 <Tabs defaultValue="en" className="w-full">
-                  <TabsList className="bg-muted/50 p-1 rounded-xl mb-6">
-                    <TabsTrigger value="en" className="rounded-lg px-6 font-bold">English (Default)</TabsTrigger>
-                    <TabsTrigger value="de" className="rounded-lg px-6 font-bold">Deutsch</TabsTrigger>
-                    <TabsTrigger value="fr" className="rounded-lg px-6 font-bold">Français</TabsTrigger>
-                    <TabsTrigger value="nl" className="rounded-lg px-6 font-bold">Nederlands</TabsTrigger>
+                  <TabsList className="bg-muted/30 p-1.5 rounded-2xl h-14 mb-8">
+                    <TabsTrigger value="en" className="rounded-xl px-8 font-black text-xs uppercase tracking-widest data-[state=active]:bg-background">English</TabsTrigger>
+                    <TabsTrigger value="de" className="rounded-xl px-8 font-black text-xs uppercase tracking-widest data-[state=active]:bg-background">Deutsch</TabsTrigger>
+                    <TabsTrigger value="fr" className="rounded-xl px-8 font-black text-xs uppercase tracking-widest data-[state=active]:bg-background">Français</TabsTrigger>
+                    <TabsTrigger value="nl" className="rounded-xl px-8 font-black text-xs uppercase tracking-widest data-[state=active]:bg-background">Nederlands</TabsTrigger>
                   </TabsList>
                   <TabsContent value="en" className="space-y-6">
                     <FormField control={typedControl} name="description" render={({ field }) => (
-                      <FormItem><FormLabel className="text-xs font-bold uppercase opacity-60">Primary Description</FormLabel><FormControl><Textarea {...field} className="min-h-[200px] rounded-2xl" placeholder="Detailed property summary..." /></FormControl><FormMessage /></FormItem>
+                      <FormItem><FormLabel className="text-[10px] font-black uppercase opacity-60">Primary Portfolio Description</FormLabel><FormControl><Textarea {...field} className="min-h-[300px] rounded-[2rem] p-6 text-lg leading-relaxed" /></FormControl><FormMessage /></FormItem>
                     )} />
                   </TabsContent>
-                  <TabsContent value="de">
-                    <FormField control={typedControl} name="DE" render={({ field }) => (
-                      <FormItem><FormLabel className="text-xs font-bold uppercase opacity-60">German Translation</FormLabel><FormControl><Textarea {...field} className="min-h-[200px] rounded-2xl" /></FormControl></FormItem>
-                    )} />
-                  </TabsContent>
-                  <TabsContent value="fr">
-                    <FormField control={typedControl} name="FR" render={({ field }) => (
-                      <FormItem><FormLabel className="text-xs font-bold uppercase opacity-60">French Translation</FormLabel><FormControl><Textarea {...field} className="min-h-[200px] rounded-2xl" /></FormControl></FormItem>
-                    )} />
-                  </TabsContent>
-                  <TabsContent value="nl">
-                    <FormField control={typedControl} name="NL" render={({ field }) => (
-                      <FormItem><FormLabel className="text-xs font-bold uppercase opacity-60">Dutch Translation</FormLabel><FormControl><Textarea {...field} className="min-h-[200px] rounded-2xl" /></FormControl></FormItem>
-                    )} />
-                  </TabsContent>
+                  {['DE', 'FR', 'NL'].map(lang => (
+                    <TabsContent key={lang} value={lang.toLowerCase()}>
+                       <FormField control={typedControl} name={lang as any} render={({ field }) => (
+                        <FormItem><FormLabel className="text-[10px] font-black uppercase opacity-60">{lang} Translation</FormLabel><FormControl><Textarea {...field} className="min-h-[300px] rounded-[2rem] p-6 text-lg leading-relaxed" placeholder={`Pending ${lang} localization...`} /></FormControl></FormItem>
+                      )} />
+                    </TabsContent>
+                  ))}
                 </Tabs>
               </CardContent>
             </Card>
           </div>
-          <div className="space-y-10">
-            {/* PRICING & STATUS */}
-            <Card className="rounded-[2.5rem] shadow-glow overflow-hidden bg-primary text-primary-foreground border-none">
-              <CardHeader className="pb-2"><CardTitle className="text-sm font-black uppercase tracking-[0.2em] opacity-80">Valuation & Liquidity</CardTitle></CardHeader>
-              <CardContent className="p-8 space-y-6">
+          <div className="lg:col-span-4 space-y-12">
+            {/* PRICING CARD */}
+            <Card className="rounded-[3rem] shadow-glow bg-primary text-primary-foreground border-none p-10 space-y-10">
+              <div className="space-y-2">
+                 <h2 className="text-sm font-black uppercase tracking-[0.3em] opacity-80">Market Valuation</h2>
+                 <p className="text-xs opacity-60 font-bold uppercase">Cloud Synchronized Data</p>
+              </div>
+              <div className="space-y-8">
                 <FormField control={typedControl} name="price" render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-xs font-bold opacity-80">MARKET PRICE ($)</FormLabel>
-                    <FormControl><Input type="number" {...field} className="h-16 rounded-3xl bg-white/10 border-white/20 text-white text-3xl font-black font-display tracking-tighter" /></FormControl>
+                    <FormLabel className="text-[10px] font-black opacity-80 uppercase tracking-widest">Listing Price (USD)</FormLabel>
+                    <FormControl><Input type="number" {...field} className="h-20 rounded-[2rem] bg-white/10 border-white/20 text-white text-4xl font-black font-display tracking-tighter text-center" /></FormControl>
                   </FormItem>
                 )} />
                 <FormField control={typedControl} name="originalprice" render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-xs font-bold opacity-80">ORIGINAL PRICE ($)</FormLabel>
-                    <FormControl><Input type="number" {...field} className="h-12 rounded-2xl bg-white/10 border-white/20 text-white text-xl font-bold" /></FormControl>
+                    <FormLabel className="text-[10px] font-black opacity-80 uppercase tracking-widest">Valuation Baseline</FormLabel>
+                    <FormControl><Input type="number" {...field} className="h-16 rounded-2xl bg-white/10 border-white/20 text-white text-xl font-bold text-center" /></FormControl>
                   </FormItem>
                 )} />
+                <div className="h-px bg-white/10" />
                 <FormField control={typedControl} name="salestage" render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-xs font-bold opacity-80">SALES VELOCITY</FormLabel>
+                    <FormLabel className="text-[10px] font-black opacity-80 uppercase tracking-widest text-center block">Sales stage Velocity</FormLabel>
                     <Select onValueChange={field.onChange} value={String(field.value || 0)}>
-                      <FormControl><SelectTrigger className="h-12 rounded-2xl bg-white/10 border-white/20 font-black"><SelectValue /></SelectTrigger></FormControl>
-                      <SelectContent><SelectItem value="0">FOR SALE</SelectItem><SelectItem value="1">RESERVED</SelectItem><SelectItem value="2">SOLD</SelectItem></SelectContent>
+                      <FormControl><SelectTrigger className="h-16 rounded-2xl bg-white/10 border-white/20 font-black text-center"><SelectValue /></SelectTrigger></FormControl>
+                      <SelectContent><SelectItem value="0">FOR SALE (ACTIVE)</SelectItem><SelectItem value="1">RESERVED (PENDING)</SelectItem><SelectItem value="2">SOLD (COMPLETE)</SelectItem></SelectContent>
                     </Select>
                   </FormItem>
                 )} />
                 <FormField control={typedControl} name="display" render={({ field }) => (
-                  <FormItem className="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/10">
-                    <span className="text-xs font-bold opacity-80">VISIBLE TO PUBLIC</span>
-                    <FormControl><Switch checked={field.value} onCheckedChange={field.onChange} /></FormControl>
+                  <FormItem className="flex items-center justify-between p-6 bg-black/20 rounded-[2rem] border border-white/5">
+                    <span className="text-[10px] font-black opacity-80 uppercase tracking-widest">Public Visibility</span>
+                    <FormControl><Switch checked={field.value} onCheckedChange={field.onChange} className="data-[state=checked]:bg-emerald-500" /></FormControl>
                   </FormItem>
                 )} />
-              </CardContent>
+              </div>
             </Card>
-            {/* MEDIA ASSETS */}
-            <Card className="rounded-[2rem] border-2 border-dashed border-primary/20 bg-primary/5 hover:bg-primary/10 transition-colors">
-              <CardHeader className="text-center"><CardTitle className="text-xl">Portfolio Gallery</CardTitle></CardHeader>
-              <CardContent className="p-8 text-center space-y-4">
-                {isEditing ? (
-                   <Button type="button" onClick={() => setIsImageManagerOpen(true)} className="w-full h-14 rounded-2xl font-black text-lg bg-white text-primary hover:bg-white/90 shadow-xl">
-                    <ImageIcon className="mr-3 h-6 w-6" />
-                    Manage Media ({property?.images?.length || 0})
-                   </Button>
-                ) : (
-                  <div className="p-4 bg-muted/40 rounded-2xl border border-dashed border-muted-foreground/20">
-                    <p className="text-xs font-bold text-muted-foreground uppercase leading-relaxed">Gallery activation available after initial publication.</p>
-                  </div>
-                )}
-              </CardContent>
+            {/* GALLERY ENTRY */}
+            <Card className="rounded-[3rem] border-2 border-dashed border-primary/20 bg-primary/5 hover:bg-primary/10 transition-all p-10 text-center space-y-6 group">
+              <div className="h-20 w-20 rounded-[2rem] bg-white shadow-xl flex items-center justify-center mx-auto group-hover:scale-110 transition-transform">
+                <ImageIcon className="h-10 w-10 text-primary" />
+              </div>
+              <div>
+                <h3 className="text-xl font-black">Media Assets</h3>
+                <p className="text-xs text-muted-foreground font-bold uppercase tracking-widest mt-1">Managed Cloud Bucket</p>
+              </div>
+              {isEditing ? (
+                 <Button type="button" onClick={() => setIsImageManagerOpen(true)} className="w-full h-16 rounded-[2rem] font-black text-lg bg-white text-primary hover:bg-white/90 shadow-2xl">
+                    Manage Gallery ({property?.images?.length || 0})
+                 </Button>
+              ) : (
+                <div className="p-6 bg-muted/40 rounded-3xl border border-dashed border-muted-foreground/20 flex items-center gap-3">
+                  <AlertTriangle className="h-5 w-5 text-amber-500 shrink-0" />
+                  <p className="text-[10px] font-black text-muted-foreground uppercase leading-relaxed text-left">Gallery activation requires record persistence. Publish the property first.</p>
+                </div>
+              )}
             </Card>
-            {/* AUDIT LOG */}
-            {isEditing && property?.lastEdited && (
-              <div className="p-6 bg-muted/20 rounded-[2rem] border border-border/50 flex flex-col gap-4">
-                <div className="flex items-center gap-4 text-muted-foreground">
-                  <History className="h-5 w-5 opacity-40" />
-                  <div className="text-[10px] font-black uppercase tracking-widest leading-tight">
-                    Last Database Sync: <br/> {format(new Date(property.lastEdited), 'HH:mm • MMM d, yyyy')}
+            {/* AUDIT */}
+            {isEditing && property && (
+              <div className="p-8 bg-muted/20 rounded-[3rem] border border-border/40 space-y-6">
+                <div className="flex items-start gap-4">
+                  <History className="h-6 w-6 text-muted-foreground opacity-30 mt-1" />
+                  <div>
+                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Last Database Sync</span>
+                    <p className="font-bold text-sm">{format(new Date(property.lastEdited), 'HH:mm:ss • MMM dd, yyyy')}</p>
                   </div>
                 </div>
-                <div className="h-px bg-border/50" />
-                <div className="flex items-center gap-4 text-muted-foreground">
-                  <Building2 className="h-5 w-5 opacity-40" />
-                  <div className="text-[10px] font-black uppercase tracking-widest leading-tight">
-                    Internal Identifier: <br/> {property.id}
+                <div className="h-px bg-border/40" />
+                <div className="flex items-start gap-4">
+                  <Building2 className="h-6 w-6 text-muted-foreground opacity-30 mt-1" />
+                  <div>
+                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Object ID</span>
+                    <p className="font-mono text-[10px] break-all opacity-60">{property.id}</p>
                   </div>
                 </div>
               </div>
