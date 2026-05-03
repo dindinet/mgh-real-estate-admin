@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState, useCallback } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useForm, Control } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -118,7 +118,7 @@ export function PropertyEditorPage() {
     },
   });
   const typedControl = form.control as unknown as Control<PropertyFormValues>;
-  const resetForm = useCallback(() => {
+  useEffect(() => {
     if (property) {
       form.reset({
         ...property,
@@ -129,10 +129,7 @@ export function PropertyEditorPage() {
         NL: property.NL || '',
       } as any);
     }
-  }, [form, property]);
-  useEffect(() => {
-    resetForm();
-  }, [resetForm]);
+  }, [property]);
   const mutation = useMutation({
     mutationFn: (values: PropertyFormValues) => {
       const method = isEditing ? 'PATCH' : 'POST';
@@ -233,8 +230,8 @@ export function PropertyEditorPage() {
                     <FormItem>
                       <FormLabel className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Type</FormLabel>
                       <Select onValueChange={field.onChange} value={field.value || ''}>
-                        <FormControl><SelectTrigger className="h-14 rounded-2xl"><SelectValue /></SelectTrigger></FormControl>
-                        <SelectContent>{PROPERTY_TYPES.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
+                        <FormControl><SelectTrigger className="h-14 rounded-2xl bg-card text-foreground border-border hover:bg-accent hover:text-accent-foreground focus-visible:bg-accent focus-visible:text-accent-foreground focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary data-[state=open]:bg-accent data-[state=open]:shadow-md data-[state=open]:ring-2 data-[state=open]:ring-offset-2 data-[state=open]:ring-primary"><SelectValue /></SelectTrigger></FormControl>
+                        <SelectContent className="bg-popover text-popover-foreground border-popover shadow-lg data-[side=top]:animate-slideDown data-[side=bottom]:animate-slideUp z-[1000]">{PROPERTY_TYPES.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
                       </Select>
                     </FormItem>
                   )} />
@@ -350,8 +347,8 @@ export function PropertyEditorPage() {
                   <FormItem>
                     <FormLabel className="text-[10px] font-black opacity-80 uppercase tracking-widest text-center block">Sales stage Velocity</FormLabel>
                     <Select onValueChange={field.onChange} value={String(field.value || 0)}>
-                      <FormControl><SelectTrigger className="h-16 rounded-2xl bg-white/10 border-white/20 font-black text-center"><SelectValue /></SelectTrigger></FormControl>
-                      <SelectContent><SelectItem value="0">FOR SALE (ACTIVE)</SelectItem><SelectItem value="1">RESERVED (PENDING)</SelectItem><SelectItem value="2">SOLD (COMPLETE)</SelectItem></SelectContent>
+                      <FormControl><SelectTrigger className="h-16 rounded-2xl bg-card text-card-foreground border-card font-black text-lg hover:bg-accent hover:text-accent-foreground focus-visible:bg-accent focus-visible:text-accent-foreground focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary data-[state=open]:bg-accent data-[state=open]:shadow-md data-[state=open]:ring-2 data-[state=open]:ring-offset-2 data-[state=open]:ring-primary text-center"><SelectValue className="font-bold" /></SelectTrigger></FormControl>
+                      <SelectContent className="backdrop-blur-sm bg-popover/95 text-popover-foreground border-popover shadow-lg data-[side=top]:animate-slideDown data-[side=bottom]:animate-slideUp z-[1000]"><SelectItem value="0">FOR SALE (ACTIVE)</SelectItem><SelectItem value="1">RESERVED (PENDING)</SelectItem><SelectItem value="2">SOLD (COMPLETE)</SelectItem></SelectContent>
                     </Select>
                   </FormItem>
                 )} />
@@ -390,7 +387,7 @@ export function PropertyEditorPage() {
                   <History className="h-6 w-6 text-muted-foreground opacity-30 mt-1" />
                   <div>
                     <span className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Last Database Sync</span>
-                    <p className="font-bold text-sm">{format(new Date(property.lastEdited), 'HH:mm:ss • MMM dd, yyyy')}</p>
+                    <p className="font-bold text-sm">{format(new Date(property.lastEdited || Date.now()), 'HH:mm:ss • MMM dd, yyyy')}</p>
                   </div>
                 </div>
                 <div className="h-px bg-border/40" />
