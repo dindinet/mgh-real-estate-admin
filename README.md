@@ -1,6 +1,6 @@
 # Lumina Admin
 
-[cloudflarebutton]
+[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/dindinet/mgh-real-estate-admin)
 
 A modern, full-stack admin dashboard template powered by Cloudflare Workers. Built with React, Vite, shadcn/ui, and TypeScript for rapid development of production-ready applications. Features a serverless backend with Durable Objects for scalable, real-time data persistence (users, chats, and custom entities).
 
@@ -95,7 +95,7 @@ bun deploy
 
 Or use the [Cloudflare Dashboard](https://dash.cloudflare.com/) for custom domains and bindings.
 
-[cloudflarebutton]
+[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/dindinet/mgh-real-estate-admin)
 
 **Post-Deploy**:
 - Set up Durable Objects migration via Wrangler dashboard.
