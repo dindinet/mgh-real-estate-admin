@@ -4,7 +4,7 @@
  */
  {
 	"$schema": "node_modules/wrangler/config-schema.json",
-	"name": "lumina-admin-9cdgmeipftcqalb75qghp",
+	"name": "Lumina-admin-9cdgmeipftcqalb75qghp",
 	"main": "worker/index.ts",
 	"compatibility_date": "2025-04-24",
 	"assets": {

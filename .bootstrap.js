@@ -8,7 +8,7 @@
 const fs = require('fs');
 const { execSync } = require('child_process');
 
-const PROJECT_NAME = "lumina-admin-9cdgmeipftcqalb75qghp";
+const PROJECT_NAME = "Lumina-admin-9cdgmeipftcqalb75qghp";
 const BOOTSTRAP_MARKER = '.bootstrap-complete';
 
 // Check if already bootstrapped
