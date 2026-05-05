@@ -1,6 +1,5 @@
 import { Hono } from "hono";
 import type { Env } from './core-utils';
-import { PropertyEntity, UserEntity } from "./entities";
 import { ok, bad, notFound } from './core-utils';
 import JSZip from "jszip";
 /**
@@ -11,38 +10,36 @@ import JSZip from "jszip";
 export function userRoutes(app: Hono<{ Bindings: Env }>) {
   // --- PROPERTY CORE (D1 SIMULATION) ---
   app.get('/api/properties', async (c) => {
-    await PropertyEntity.ensureSeed(c.env);
-    const cursor = c.req.query('cursor');
+    const offset = Number(c.req.query('offset')) || 0;
     const limit = Number(c.req.query('limit')) || 40;
-    // Simulate: SELECT * FROM MGHPROPS ORDER BY created DESC LIMIT ? OFFSET ?
-    const page = await PropertyEntity.list(c.env, cursor ?? null, limit);
-    return ok(c, page);
+    
+    const { results } = await c.env.mghdb
+      .prepare("SELECT * FROM MGHPROPS ORDER BY created DESC LIMIT ? OFFSET ?")
+      .bind(limit, offset)
+      .all();
+
+    // Parse images JSON string back to array for frontend
+    const parsedResults = results.map(row => ({
+      ...row,
+      images: typeof row.images === 'string' ? JSON.parse(row.images) : []
+    }));
+
+    return ok(c, { items: parsedResults, nextOffset: offset + limit });
   });
+
   app.get('/api/properties/:ref', async (c) => {
     const ref = c.req.param('ref');
-    const entity = new PropertyEntity(c.env, ref);
-    if (!await entity.exists()) return notFound(c, 'MGH record not found');
-    const state = await entity.getState();
-    await entity.ensureSchemaConsistency(); // On-the-fly migration check
-    return ok(c, state);
-  });
-  app.post('/api/properties', async (c) => {
-    const body = await c.req.json();
-    if (!body.ref || !body.title) return bad(c, 'Ref and Title are mandatory for MGHPROPS compliance');
-    const entity = new PropertyEntity(c.env, body.ref);
-    if (await entity.exists()) return bad(c, 'Duplicate property reference');
-    const now = new Date().toISOString();
-    const property = {
-      ...PropertyEntity.initialState,
-      ...body,
-      id: crypto.randomUUID(),
-      created: now,
-      lastEdited: now,
-      kdate: now
-    };
-    // Simulate: INSERT INTO MGHPROPS (...) VALUES (...)
-    const saved = await PropertyEntity.create(c.env, property);
-    return ok(c, saved);
+    const result = await c.env.mghdb
+      .prepare("SELECT * FROM MGHPROPS WHERE ref = ?")
+      .bind(ref)
+      .first();
+
+    if (!result) return notFound(c, 'MGH record not found');
+    
+    return ok(c, {
+      ...result,
+      images: typeof result.images === 'string' ? JSON.parse(result.images) : []
+    });
   });
   app.patch('/api/properties/:ref', async (c) => {
     const ref = c.req.param('ref');

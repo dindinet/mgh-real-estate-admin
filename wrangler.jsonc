@@ -1,7 +1,4 @@
-/**
- * Wrangler config for the Cloudflare Durable Object template
- * STRICTLY DO NOT MODIFY THIS FILE - Hidden from AI to prevent breaking core functionality
- */
+
  {
 	"$schema": "node_modules/wrangler/config-schema.json",
 	"name": "Lumina-admin-9cdgmeipftcqalb75qghp",
@@ -14,20 +11,17 @@
 	"observability": {
 		"enabled": true
 	},
-    "durable_objects": {
-      "bindings": [
-        {
-          "name": "GlobalDurableObject",
-          "class_name": "GlobalDurableObject"
-        }
-      ]
-    },
-    "migrations": [
-      {
-        "tag": "v1",
-        "new_sqlite_classes": [
-          "GlobalDurableObject"
-        ]
-      }
-    ]
+	"d1_databases": [
+		{
+			"binding": "mghdb",
+			"database_name": "mghdb",
+			"database_id": "405220ed-2c0c-4a8f-853a-140c34abb09c"
+		}
+	],
+	"r2_buckets": [
+		{
+			"binding": "MY_BUCKET",
+			"bucket_name": "mgh-prop-images"
+		}
+	]
 }

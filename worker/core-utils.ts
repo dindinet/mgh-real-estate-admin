@@ -8,7 +8,8 @@ import { DurableObject } from "cloudflare:workers"; // DO NOT MODIFY THIS LINE. 
 import type { Context } from "hono";
 
 export interface Env {
-  GlobalDurableObject: DurableObjectNamespace<GlobalDurableObject>;
+  mghdb: D1Database;
+  MY_BUCKET: R2Bucket;
 }
 
 type Doc<T> = { v: number; data: T };
