@@ -1,12 +1,7 @@
 import { IndexedEntity } from "./core-utils";
-import type { User, Property } from "@shared/types";
-import { MOCK_USERS, MOCK_PROPERTIES } from "@shared/mock-data";
-export class UserEntity extends IndexedEntity<User> {
-  static readonly entityName = "user";
-  static readonly indexName = "users";
-  static readonly initialState: User = { id: "", name: "" };
-  static seedData = MOCK_USERS;
-}
+import type { Property } from "@shared/types";
+import { MOCK_PROPERTIES } from "@shared/mock-data";
+
 export class PropertyEntity extends IndexedEntity<Property> {
   static readonly entityName = "property";
   static readonly indexName = "properties";

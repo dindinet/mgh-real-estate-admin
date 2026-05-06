@@ -57,7 +57,6 @@ import { format } from 'date-fns';
 const propertySchema = z.object({
   ref: z.string().min(3, 'Reference must be at least 3 characters'),
   kref: z.string().optional(),
-  title: z.string().min(5, 'Title must be at least 5 characters'),
   ptype: z.string().min(1, 'Type is required'),
   province: z.string().min(2, 'Province is required'),
   town: z.string().min(2, 'Town is required'),
@@ -114,7 +113,7 @@ export function PropertyEditorPage() {
   const form = useForm<PropertyFormValues>({
     resolver: zodResolver(propertySchema) as any,
     defaultValues: {
-      ref: '', kref: '', title: '', ptype: 'Villa', province: '', town: '', location: '', area: '', price: 0, originalprice: 0, frequency: 'Sale', beds: 0, baths: 0, living: 0, plot: 0, display: true, salestage: 0, description: '', moredetails: '', DE: '', FR: '', NL: '', rental: false, finca: false, penthouse: false, luxury: false, offplan: false, leasehold: false, golf: false, beach: false, aircon: false, pool: false, fireplace: false, heating: false, solarium: false, balconies: false, furnished: false, kitchen: false, utility: false, topsix: false, kyeroPrime: false, notrain: false
+      ref: '', kref: '', ptype: 'Villa', province: '', town: '', location: '', area: '', price: 0, originalprice: 0, frequency: 'Sale', beds: 0, baths: 0, living: 0, plot: 0, display: true, salestage: 0, description: '', moredetails: '', DE: '', FR: '', NL: '', rental: false, finca: false, penthouse: false, luxury: false, offplan: false, leasehold: false, golf: false, beach: false, aircon: false, pool: false, fireplace: false, heating: false, solarium: false, balconies: false, furnished: false, kitchen: false, utility: false, topsix: false, kyeroPrime: false, notrain: false
     },
   });
   const typedControl = form.control as unknown as Control<PropertyFormValues>;
@@ -167,7 +166,7 @@ export function PropertyEditorPage() {
           </Button>
           <div>
             <h1 className="text-5xl font-display font-black tracking-tight text-foreground leading-none">
-              {isEditing ? property?.title : 'New Portfolio Entry'}
+              {isEditing ? 'Edit Property' : 'New Portfolio Entry'}
             </h1>
             <div className="flex items-center gap-4 mt-4">
               <Badge variant="secondary" className="px-3 py-1 font-black text-[10px] tracking-widest uppercase">
@@ -219,13 +218,6 @@ export function PropertyEditorPage() {
                     </FormItem>
                   )} />
                 </div>
-                <FormField control={typedControl} name="title" render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Marketing Title</FormLabel>
-                    <FormControl><Input {...field} className="h-16 rounded-2xl font-bold text-xl" /></FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )} />
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                   <FormField control={typedControl} name="ptype" render={({ field }) => (
                     <FormItem>

@@ -4,8 +4,9 @@ export interface ApiResponse<T = unknown> {
   error?: string;
 }
 export interface User {
-  id: string;
-  name: string;
+  user_id: number;
+  email: string;
+  pwd?: string;
 }
 export interface Chat {
   id: string;
@@ -19,60 +20,50 @@ export interface ChatMessage {
   ts: number;
 }
 export interface Property {
-  // Core Identifiers
-  id: string; // Internal UUID
-  ref: string; // Public Unique Reference (e.g. MGH-101)
-  kref: string; // External/Legacy Reference
-  // Basic Details
-  title: string;
-  ptype: string; // Villa, Apartment, Townhouse, etc.
-  province: string;
-  town: string;
-  location: string;
-  area: string;
-  // Pricing
-  price: number;
-  originalprice: number;
-  frequency: string; // Sale, Monthly, Weekly
-  // Specifications
-  beds: number;
-  baths: number;
-  living: number; // Living area sqm
-  plot: number; // Plot size sqm
-  // Media & Descriptions
-  images: string[];
-  description: string;
-  moredetails: string;
-  // Status Flags
-  display: boolean;
-  salestage: number; // 0: For Sale, 1: Reserved, 2: Sold
-  // Feature Flags Matrix (MGHPROPS Schema)
-  rental: boolean;
-  finca: boolean;
-  penthouse: boolean;
-  luxury: boolean;
-  offplan: boolean;
-  leasehold: boolean;
-  golf: boolean;
-  beach: boolean;
+  propid: number;
+  DE: string | null;
+  FR: string | null;
+  NL: string | null;
   aircon: boolean;
-  pool: boolean;
-  fireplace: boolean;
-  heating: boolean;
-  solarium: boolean;
+  area: string | null;
   balconies: boolean;
-  furnished: boolean;
-  kitchen: boolean;
-  utility: boolean;
-  notrain: boolean;
-  topsix: boolean;
+  baths: number | null;
+  beach: boolean;
+  beds: number | null;
+  created: string | null;
+  description: string | null;
+  display: boolean;
+  finca: boolean;
+  fireplace: boolean;
+  frequency: string | null;
+  furnished: string | null;
+  golf: boolean;
+  heating: boolean;
+  images: string | null;
+  kdate: string | null;
+  kitchen: 'open' | 'separate' | null;
+  kref: string | null;
   kyeroPrime: boolean;
-  // Localization
-  DE: string;
-  FR: string;
-  NL: string;
-  // Timestamps (ISO Strings)
-  created: string;
-  kdate: string;
-  lastEdited: string;
+  lastedited: string | null;
+  leasehold: boolean;
+  living: number | null;
+  location: string | null;
+  luxury: boolean;
+  moredetails: string | null;
+  notrain: boolean;
+  offplan: boolean;
+  originalprice: number | null;
+  penthouse: boolean;
+  plot: number | null;
+  pool: 'No' | 'private' | 'community' | null;
+  price: number | null;
+  province: string | null;
+  ptype: string | null;
+  ref: string | null;
+  rental: boolean;
+  salestage: 0 | 1 | 2;
+  solarium: boolean;
+  topsix: boolean;
+  town: string | null;
+  utility: boolean;
 }

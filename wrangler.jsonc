@@ -1,7 +1,7 @@
 
  {
 	"$schema": "node_modules/wrangler/config-schema.json",
-	"name": "Lumina-admin-9cdgmeipftcqalb75qghp",
+	"name": "lumina-admin-9cdgmeipftcqalb75qghp",
 	"main": "worker/index.ts",
 	"compatibility_date": "2025-04-24",
 	"assets": {
@@ -15,13 +15,17 @@
 		{
 			"binding": "mghdb",
 			"database_name": "mghdb",
-			"database_id": "405220ed-2c0c-4a8f-853a-140c34abb09c"
+			"database_id": "405220ed-2c0c-4a8f-853a-140c34abb09c",
+			// Connect to remote D1
+			"remote": true 
 		}
 	],
 	"r2_buckets": [
 		{
 			"binding": "MY_BUCKET",
-			"bucket_name": "mgh-prop-images"
+			"bucket_name": "mgh-prop-images",
+			// Connect to remote R2
+			"remote": true			
 		}
 	]
 }
